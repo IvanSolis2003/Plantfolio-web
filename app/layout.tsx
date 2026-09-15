@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import RegistrarServiceWorker from "./registrar-sw";
 import QueryProvider from "./QueryProvider";
+import SincronizarSesion from "./SincronizarSesion";
 import EstadoConexion from "@/components/EstadoConexion";
 import BarraInferior from "@/components/BarraInferior";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="es">
       <body className="bg-background text-text">
         <QueryProvider>
+          <SincronizarSesion usuario={usuario} />
           <EstadoConexion />
           <div className={usuario ? "pb-[60px]" : undefined}>{children}</div>
           {usuario && <BarraInferior />}
