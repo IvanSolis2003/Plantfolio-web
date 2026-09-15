@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import RegistrarServiceWorker from "./registrar-sw";
+import QueryProvider from "./QueryProvider";
 import EstadoConexion from "@/components/EstadoConexion";
+import BarraInferior from "@/components/BarraInferior";
+import { obtenerUsuarioServidor } from "@/lib/sesion";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,12 +24,17 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const usuario = await obtenerUsuarioServidor();
+
   return (
     <html lang="es">
       <body className="bg-background text-text">
-        <EstadoConexion />
-        {children}
+        <QueryProvider>
+          <EstadoConexion />
+          <div className={usuario ? "pb-[60px]" : undefined}>{children}</div>
+          {usuario && <BarraInferior />}
+        </QueryProvider>
         <RegistrarServiceWorker />
       </body>
     </html>
