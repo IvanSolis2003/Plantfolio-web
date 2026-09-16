@@ -1,23 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setCookieSesion } from "@/lib/sesion";
-import type { ApiResponse, AuthTokens } from "@/types";
-
-const API_URL = process.env.PLANTFOLIO_API_URL ?? "http://localhost:3000";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { crearSesion } from "@/lib/sesion";
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
+  const { name, email, password } = (await req.json()) as {
+    name: string;
+    email: string;
+    password: string;
+  };
 
-  const respuesta = await fetch(`${API_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body,
-  });
-
-  const data: ApiResponse<AuthTokens> = await respuesta.json();
-
-  if (data.success && data.data?.token) {
-    await setCookieSesion(data.data.token);
+  const existente = await prisma.user.findUnique({ where: { email } });
+  if (existente) {
+    return NextResponse.json({ success: false, error: "El correo ya está registrado" }, { status: 409 });
   }
 
-  return NextResponse.json(data, { status: respuesta.status });
+  const hashed = await bcrypt.hash(password, 10);
+  const usuario = await prisma.user.create({ data: { name, email, password: hashed } });
+
+  await crearSesion(usuario.id);
+
+  return NextResponse.json(
+    {
+      success: true,
+      data: { id: usuario.id, email: usuario.email, name: usuario.name, createdAt: usuario.createdAt },
+    },
+    { status: 201 }
+  );
 }

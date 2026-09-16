@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setCookieSesion } from "@/lib/sesion";
-import type { ApiResponse, AuthTokens } from "@/types";
-
-const API_URL = process.env.PLANTFOLIO_API_URL ?? "http://localhost:3000";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { crearSesion } from "@/lib/sesion";
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
+  const { email, password } = (await req.json()) as { email: string; password: string };
 
-  const respuesta = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body,
-  });
-
-  const data: ApiResponse<AuthTokens> = await respuesta.json();
-
-  if (data.success && data.data?.token) {
-    await setCookieSesion(data.data.token);
+  const usuario = await prisma.user.findUnique({ where: { email } });
+  if (!usuario) {
+    return NextResponse.json({ success: false, error: "Credenciales inválidas" }, { status: 401 });
   }
 
-  return NextResponse.json(data, { status: respuesta.status });
+  const valido = await bcrypt.compare(password, usuario.password);
+  if (!valido) {
+    return NextResponse.json({ success: false, error: "Credenciales inválidas" }, { status: 401 });
+  }
+
+  await crearSesion(usuario.id);
+
+  return NextResponse.json({
+    success: true,
+    data: { id: usuario.id, email: usuario.email, name: usuario.name, createdAt: usuario.createdAt },
+  });
 }

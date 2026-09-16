@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { borrarCookieSesion } from "@/lib/sesion";
+import { cerrarSesion } from "@/lib/sesion";
 
 export async function POST() {
-  await borrarCookieSesion();
+  await cerrarSesion();
   return NextResponse.json({ success: true });
 }
