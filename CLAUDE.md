@@ -320,6 +320,16 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
    con la misma lista curada que usa la identificación por cámara
    (`lib/floraNativaChile.ts`). Reusa el `photoUrl` ya subido, igual que al
    elegir una de las 3 candidatas — no hay una segunda subida a Cloudinary.
+10. Al elegir una candidata (de las 3 o de la búsqueda manual), hay dos
+    botones: "Agregar al álbum" (llama a `POST /api/album`, como siempre) y
+    "Solo identificar" (no llama a ningún endpoint nuevo, solo muestra la
+    especie elegida en pantalla). Esta segunda opción **no crea un
+    `CollectionEntry`**, así que no aparece en el álbum, ni en el mapa, ni
+    cuenta para logros — pensado para identificar una planta que no es
+    propia (de un amigo, en la calle) sin que quede en la colección
+    personal. El `Plant` del catálogo y el `IdentificationLog` sí se crean
+    igual que siempre, porque eso ya pasa en `/api/identify` antes de elegir
+    qué hacer con el resultado.
 
 ## ⚠️ Trampa: `nativeToChile` siempre en `false` para especies nuevas
 
