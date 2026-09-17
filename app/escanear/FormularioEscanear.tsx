@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
 import { archivoAJpegBase64 } from "@/lib/imagenCliente";
-import type { ApiResponse, CollectionEntry, IdentifyResponse, IdentifyResult } from "@/types";
+import type { ApiResponse, CollectionEntry, IdentifyResponse, IdentifyResult, Plant } from "@/types";
 
 function obtenerUbicacion(): Promise<GeolocationPosition | null> {
   return new Promise((resolve) => {
@@ -28,11 +28,14 @@ export default function FormularioEscanear() {
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<IdentifyResponse | null>(null);
   const [seleccionada, setSeleccionada] = useState<IdentifyResult | null>(null);
+  const [nombreManual, setNombreManual] = useState("");
+  const [buscandoManual, setBuscandoManual] = useState(false);
   const router = useRouter();
 
   function reiniciar() {
     setResultado(null);
     setSeleccionada(null);
+    setNombreManual("");
     setGuardado(false);
     setError(null);
   }
@@ -60,6 +63,39 @@ export default function FormularioEscanear() {
     } finally {
       setCargando(false);
       e.target.value = "";
+    }
+  }
+
+  async function handleBuscarManual() {
+    const nombre = nombreManual.trim();
+    if (!nombre || !resultado) return;
+
+    setBuscandoManual(true);
+    setError(null);
+
+    try {
+      const respuesta = await fetch("/api/plantas/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre }),
+      });
+      const data: ApiResponse<Plant> = await respuesta.json();
+      if (!data.success || !data.data) throw new Error(data.error ?? "Error al buscar la planta");
+
+      setSeleccionada({
+        plantId: data.data.id,
+        photoUrl: resultado.photoUrl,
+        scientificName: data.data.scientificName,
+        commonName: data.data.commonName,
+        family: data.data.family,
+        rarity: data.data.rarity,
+        nativeToChile: data.data.nativeToChile,
+        confidence: 0,
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al buscar la planta");
+    } finally {
+      setBuscandoManual(false);
     }
   }
 
@@ -164,10 +200,37 @@ export default function FormularioEscanear() {
 
           <button
             onClick={reiniciar}
-            className="w-full rounded-xl border border-accent py-3 text-center font-semibold text-muted"
+            className="mb-4 w-full rounded-xl border border-accent py-3 text-center font-semibold text-muted"
           >
             Ninguna es correcta — volver a intentar
           </button>
+
+          <div className="w-full rounded-2xl border border-dashed border-accent bg-surface p-3">
+            <p className="mb-2 text-xs font-semibold text-muted">
+              ¿La reconocés pero no aparece en la lista? Escribí su nombre:
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={nombreManual}
+                onChange={(e) => setNombreManual(e.target.value)}
+                placeholder="Ej: Copihue"
+                className="flex-1 rounded-xl border border-accent bg-background px-3 py-2 text-sm text-text"
+              />
+              <button
+                onClick={handleBuscarManual}
+                disabled={!nombreManual.trim() || buscandoManual}
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {buscandoManual ? "..." : "Buscar"}
+              </button>
+            </div>
+            {seleccionada && !resultado.candidatos.some((c) => c.plantId === seleccionada.plantId) && (
+              <p className="mt-2 text-sm font-semibold text-primary">
+                Seleccionada: {seleccionada.commonName} ({seleccionada.scientificName})
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
