@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioId } from "@/lib/sesion";
 import { subirImagen } from "@/lib/cloudinary";
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const userId = await obtenerUsuarioId();
   if (!userId) {

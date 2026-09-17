@@ -331,7 +331,7 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
 - `prisma.config.ts` necesita `datasource: { url: ... }` (no `datasourceUrl`) para que `prisma migrate` funcione
 - La sesión vive en la tabla `auth_sessions` + cookie httpOnly (`lib/sesion.ts`) — nunca JWT, nunca el token en `localStorage`
 - Correr `npx prisma migrate dev` al modificar el schema; el historial de migraciones ya incluye lo que aplicó `plantfolio-api` contra la misma base de Neon, no borrar esas migraciones viejas
-- Un route handler que llama a una API externa lenta (PlantNet, Cloudinary) necesita `export const maxDuration = 60` — el límite por defecto de las funciones serverless de Vercel es más corto que hacer 2+ llamadas externas en secuencia; si son independientes, usar `Promise.all`
+- Un route handler que llama a una API externa lenta (PlantNet, Cloudinary) necesita `export const maxDuration = 60` — el límite por defecto de las funciones serverless de Vercel es más corto que hacer 2+ llamadas externas en secuencia; si son independientes, usar `Promise.all`. **Esto aplica a cada route handler que suba a Cloudinary, no solo a `/api/identify`** — se repitió el mismo bug en `POST /api/album/:id/fotos` (agregar foto extra desde la ficha de detalle) porque se copió el patrón sin copiar el `maxDuration`; con fotos de prueba chicas nunca daba timeout, pero con una foto real de cámara sí podía fallar
 
 ## ⚠️ Trampa: `vercel env add` con `echo` agrega un salto de línea
 
