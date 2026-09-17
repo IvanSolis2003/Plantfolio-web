@@ -14,7 +14,7 @@
 | **Tipo** | PWA — Coleccionista de plantas (identificación por IA, álbum, mapa de hallazgos) |
 | **Desarrollador** | Iván Solís Manqueo |
 | **Ubicación** | Talca, Región del Maule, Chile |
-| **Estado** | Sprint 1-4 completos y verificados en producción (falta solo notificaciones push). |
+| **Estado** | Sprint 1-4 completos + cuentas con aprobación de admin + privacidad, todo verificado en producción (falta solo notificaciones push). |
 | **Producción** | https://plantfolio-web.vercel.app |
 
 Existió primero como app Android nativa (Expo/React Native + backend Express
@@ -39,8 +39,13 @@ app/
 ├── mapa/                ← mapa Leaflet con marcadores (MapaCliente.tsx + MapaLeaflet.tsx)
 ├── api/auth/            ← route handlers: login, registro, logout, me
 ├── api/identify/        ← PlantNet + Cloudinary + upsert de Plant
-├── api/album/           ← GET/POST + DELETE [id] + GET mapa
+├── api/album/           ← GET/POST + DELETE/PATCH [id] + GET mapa
 ├── api/clima/           ← alerta de riego según OpenWeather
+├── api/admin/aprobar/   ← solo esAdmin, habilita una cuenta
+├── api/perfil/privacidad/ ← toggle de coleccionPrivada
+├── admin/               ← panel de cuentas (page.tsx + BotonAprobar.tsx), notFound() si no es admin
+├── verificar/            ← resuelve el token de verificación de email
+├── galeria/              ← pública, sin login, álbum de todos salvo lo marcado privado
 ├── AlertaRiego.tsx       ← cliente, pide geolocalización best-effort, se muestra en Inicio
 ├── layout.tsx           ← resuelve sesión server-side, PWA, React Query
 ├── manifest.ts           ← manifest de PWA
@@ -49,7 +54,9 @@ app/
 components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge
 lib/
 ├── prisma.ts             ← PrismaClient + adapter de Neon
-├── sesion.ts             ← sesión en BD (crearSesion/cerrarSesion/obtenerUsuarioServidor)
+├── sesion.ts             ← sesión en BD (crearSesion/cerrarSesion/obtenerUsuarioServidor/obtenerUsuarioId)
+├── cuentas.ts            ← estadoDe/nuevoToken/vencimiento/tokenVigente (igual que RutinIA)
+├── correo.ts             ← Resend + plantillas de verificación/aprobación
 ├── plantnet.ts           ← identifica especie, mapea confianza→rareza
 ├── cloudinary.ts         ← sube foto, devuelve solo la URL
 ├── clima.ts              ← alerta de riego según humedad/temperatura
@@ -79,7 +86,8 @@ public/sw.js               ← service worker (cache-first assets, offline fallb
 | **PlantNet API** | Identificación de plantas por foto | ✅ Configurado (`PLANTNET_API_KEY`) |
 | **Cloudinary** | Storage de imágenes (solo guardar la URL) | ✅ Configurado |
 | **Neon.tech** | PostgreSQL | ✅ Configurado |
-| **OpenWeather API** | Alertas de riego según clima | ✅ Configurado (`OPENWEATHER_API_KEY`) — key nueva, verificar que ya esté activa (tardan unas horas) |
+| **OpenWeather API** | Alertas de riego según clima | ✅ Configurado (`OPENWEATHER_API_KEY`) |
+| **Resend** | Correo de verificación de cuenta y aviso de aprobación | ✅ Configurado — reusa la misma key de RutinIA (`hola@iasmtech.com` ya verificado), remitente distinto (`Plantfolio <hola@iasmtech.com>`) |
 
 ⚠️ **No es Plant.id.** El plan original y el CLAUDE.md viejo mencionaban Plant.id,
 pero pasó a ser un producto B2B sin free tier self-service claro. Se cambió a
@@ -102,11 +110,17 @@ enum Rarity {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  createdAt DateTime @default(now())
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
+  name              String
+  createdAt         DateTime  @default(now())
+  emailVerificado   DateTime?
+  tokenVerificacion String?   @unique
+  tokenExpira       DateTime?
+  aprobado          Boolean   @default(false)
+  esAdmin           Boolean   @default(false)
+  coleccionPrivada  Boolean   @default(false)
   sessions  AuthSession[]
   entries   CollectionEntry[]
   logs      IdentificationLog[]
@@ -141,6 +155,7 @@ model CollectionEntry {
   notes        String?
   latitude     Float?
   longitude    Float?
+  privado      Boolean  @default(false)
   identifiedAt DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
   plant        Plant    @relation(fields: [plantId], references: [id])
@@ -176,11 +191,58 @@ correr el seed de nuevo no duplica nada).
 | GET/POST | `/api/album` | Álbum del usuario (POST reusa el `photoUrl` que ya subió identify, no resube) | ✅ |
 | DELETE | `/api/album/:id` | Eliminar entrada (chequea ownership) | ✅ |
 | GET | `/api/album/mapa` | Entradas con GPS, para el mapa Leaflet | ✅ |
+| PATCH | `/api/album/:id` | Toggle de `privado` (chequea ownership) | ✅ |
 | GET | `/api/clima` | Alerta de riego (requiere `?lat=&lon=`) | ✅ |
+| POST | `/api/admin/aprobar` | Habilita una cuenta (solo `esAdmin`) | ✅ |
+| POST | `/api/perfil/privacidad` | Toggle de `coleccionPrivada` | ✅ |
 | GET | `/api/plants` | Catálogo completo con filtros (no hay pantalla que lo use todavía) | ⏳ |
 
 Todos se implementan como Route Handlers con Prisma directo — **no existe
 un backend separado al que llamar.**
+
+---
+
+## 👤 Cuentas: verificación + aprobación de admin (igual que RutinIA)
+
+RutinIA usa un flujo de 3 estados (`lib/cuentas.ts` → `estadoDe`), portado tal
+cual:
+
+1. **`sin-verificar`** — se registró pero no confirmó el correo
+2. **`esperando-aprobacion`** — confirmó el correo, falta que un admin lo habilite
+3. **`lista`** — puede entrar
+
+`POST /api/auth/registro` crea el `User` con `tokenVerificacion` +
+`tokenExpira` (24h) y manda el correo de verificación — **no crea sesión ni
+loguea automático**, distinto de antes. `GET /verificar?token=...` resuelve el
+token y marca `emailVerificado`. `POST /api/auth/login` valida la contraseña
+primero y **recién después** mira el estado (para no filtrarle a un
+desconocido si una cuenta existe según el mensaje de error) — si no está
+`lista`, bloquea con `MENSAJE_POR_ESTADO[estado]`.
+
+`esAdmin` no lo puede poner nadie desde la UI — se activa a mano en la base.
+`ivan.solis20.m@gmail.com` quedó como el primer admin porque no había nadie
+más que lo aprobara. `/admin` (`app/admin/page.tsx`) hace `notFound()` si
+`!esAdmin`, lista todas las cuentas y deja aprobar las que están
+`esperando-aprobacion`.
+
+**Lo que NO se portó de RutinIA** (fuera de alcance, no lo pidió el usuario):
+rate limiting por IP/correo (`lib/limites.ts` + modelo `Intento`),
+recuperación de contraseña, reenvío de verificación, revocar/eliminar cuenta.
+Si hace falta, el patrón ya existe en `RutinIA/app/admin/acciones.ts` y
+`RutinIA/lib/limites.ts` para copiar.
+
+## 🔓 Privacidad: colecciones públicas por defecto
+
+`/galeria` es una pantalla **sin login** que lista `CollectionEntry` de
+todos los usuarios (`privado: false` y `user.coleccionPrivada: false`), con
+CTA de entrar/registrarse para visitantes anónimos. Cada usuario controla su
+propia privacidad en dos niveles — **no es el admin quien la marca**:
+
+- **Por planta:** botón 🔒 en cada tarjeta del álbum (`AlbumCliente.tsx`),
+  `PATCH /api/album/:id { privado }`
+- **Por colección completa:** toggle en Perfil (`ToggleColeccionPrivada.tsx`),
+  `POST /api/perfil/privacidad { coleccionPrivada }` — oculta todo el álbum
+  del usuario de la galería sin tocar el flag de cada entrada individual
 
 ---
 
@@ -333,6 +395,8 @@ vercel --prod                # deploy a producción
 - ❌ No crear un `CollectionEntry` sin garantizar antes que el `Plant` existe (el bug del plan original)
 - ❌ No tocar `plantfolio` (Expo) para mantenerlo sincronizado con esta app — son pistas independientes
 - ❌ No commitear `.env` (contiene `DATABASE_URL`) — usar `vercel env add` para producción
+- ❌ No dejar que `esAdmin` se pueda setear desde la UI o un endpoint — solo a mano en la base
+- ❌ No comparar emails sin normalizar — siempre `.trim().toLowerCase()` en registro y login (bug real que hubo: la cuenta admin quedó guardada como `Ivan.solis20.m@gmail.com` con mayúscula)
 
 ---
 
