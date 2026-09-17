@@ -4,6 +4,8 @@ import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { identificarPlanta } from "@/lib/plantnet";
 import { subirImagen } from "@/lib/cloudinary";
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const usuario = await obtenerUsuarioServidor();
   if (!usuario) {
@@ -13,8 +15,10 @@ export async function POST(req: NextRequest) {
   const { image } = (await req.json()) as { image: string };
 
   try {
-    const resultado = await identificarPlanta(image);
-    const photoUrl = await subirImagen(image);
+    const [resultado, photoUrl] = await Promise.all([
+      identificarPlanta(image),
+      subirImagen(image),
+    ]);
 
     const planta = await prisma.plant.upsert({
       where: { scientificName: resultado.scientificName },
