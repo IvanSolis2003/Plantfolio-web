@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
+import AlertaRiego from "./AlertaRiego";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ export default async function HomePage() {
         <p className="text-base text-muted">Bienvenido,</p>
         <p className="text-2xl font-bold text-primary">{usuario.name} 🌿</p>
       </div>
+
+      <AlertaRiego />
 
       <Link
         href="/escanear"
