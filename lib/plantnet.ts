@@ -1,3 +1,5 @@
+import { esNativaDeChile } from "./floraNativaChile";
+
 export interface CandidatoIdentificacion {
   scientificName: string;
   commonName: string;
@@ -48,7 +50,7 @@ export async function identificarPlanta(
       commonName: resultado.species?.commonNames?.[0] ?? scientificName,
       confidence,
       family: resultado.species?.family?.scientificNameWithoutAuthor,
-      nativeToChile: false,
+      nativeToChile: esNativaDeChile(scientificName),
     };
   });
 
