@@ -1,23 +1,12 @@
-import { Rarity } from "@prisma/client";
-
 export interface CandidatoIdentificacion {
   scientificName: string;
   commonName: string;
   confidence: number;
   family?: string;
-  rarity: Rarity;
   nativeToChile: boolean;
 }
 
 const MAX_CANDIDATOS = 3;
-
-function mapearConfianzaARareza(confidence: number): Rarity {
-  if (confidence >= 0.95) return "CASI_EXTINTA";
-  if (confidence >= 0.85) return "PROTEGIDA";
-  if (confidence >= 0.75) return "ENDEMICA";
-  if (confidence >= 0.6) return "POCO_COMUN";
-  return "COMUN";
-}
 
 export async function identificarPlanta(
   base64: string
@@ -59,7 +48,6 @@ export async function identificarPlanta(
       commonName: resultado.species?.commonNames?.[0] ?? scientificName,
       confidence,
       family: resultado.species?.family?.scientificNameWithoutAuthor,
-      rarity: mapearConfianzaARareza(confidence),
       nativeToChile: false,
     };
   });

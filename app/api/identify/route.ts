@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
             scientificName: candidato.scientificName,
             commonName: candidato.commonName,
             family: candidato.family,
-            rarity: candidato.rarity,
             nativeToChile: candidato.nativeToChile,
           },
         })
