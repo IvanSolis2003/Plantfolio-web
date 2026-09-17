@@ -26,6 +26,10 @@ model User {
   aprobado         Boolean   @default(false)
   esAdmin          Boolean   @default(false)
   coleccionPrivada Boolean   @default(false)
+  bio              String?
+  avatarUrl        String?
+  ubicacionTexto   String?
+  compartirPerfil  Boolean   @default(false)
 
   sessions AuthSession[]
   entries  CollectionEntry[]
@@ -71,6 +75,7 @@ model CollectionEntry {
   notes        String?
   latitude     Float?
   longitude    Float?
+  ubicacionAprox String?
   privado      Boolean  @default(false)
   identifiedAt DateTime @default(now())
 

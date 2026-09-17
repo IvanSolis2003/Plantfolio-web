@@ -5,6 +5,7 @@ import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { calcularLogros } from "@/lib/logros";
 import BotonSalir from "./BotonSalir";
 import ToggleColeccionPrivada from "./ToggleColeccionPrivada";
+import EditarPerfil from "./EditarPerfil";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export default async function PerfilPage() {
       notes: entrada.notes ?? undefined,
       latitude: entrada.latitude ?? undefined,
       longitude: entrada.longitude ?? undefined,
+      ubicacionAprox: entrada.ubicacionAprox ?? undefined,
       plant: {
         ...entrada.plant,
         family: entrada.plant.family ?? undefined,
@@ -55,13 +57,17 @@ export default async function PerfilPage() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background px-6">
-      <div className="mb-8 mt-16 flex flex-col items-center">
-        <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-accent">
-          <span className="text-4xl">👤</span>
-        </div>
+      <div className="mt-16 mb-2 flex flex-col items-center">
         <p className="text-2xl font-bold text-primary">{usuario.name}</p>
-        <p className="text-sm text-muted">{usuario.email}</p>
+        <p className="mb-4 text-sm text-muted">{usuario.email}</p>
       </div>
+
+      <EditarPerfil
+        avatarUrl={usuario.avatarUrl}
+        bio={usuario.bio}
+        ubicacionTexto={usuario.ubicacionTexto}
+        compartirPerfil={usuario.compartirPerfil}
+      />
 
       <div className="mb-6 flex gap-3">
         {estadisticas.map((stat) => (

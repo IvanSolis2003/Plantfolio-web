@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import RarityBadge from "@/components/RarityBadge";
@@ -37,7 +38,11 @@ export default async function GaleriaPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {entradas.map((entrada) => (
-              <div key={entrada.id} className="rounded-2xl border border-accent bg-surface p-2">
+              <Link
+                key={entrada.id}
+                href={`/galeria/${entrada.id}`}
+                className="rounded-2xl border border-accent bg-surface p-2"
+              >
                 <Image
                   src={entrada.photos[0]}
                   alt={entrada.plant.commonName}
@@ -51,7 +56,7 @@ export default async function GaleriaPage() {
                   <RarityBadge rarity={entrada.plant.rarity} />
                 </div>
                 <p className="truncate text-xs text-muted">por {entrada.user.name}</p>
-              </div>
+              </Link>
             ))}
           </div>
         )}

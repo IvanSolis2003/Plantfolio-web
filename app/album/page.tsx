@@ -27,6 +27,7 @@ export default async function AlbumPage() {
         notes: entrada.notes ?? undefined,
         latitude: entrada.latitude ?? undefined,
         longitude: entrada.longitude ?? undefined,
+        ubicacionAprox: entrada.ubicacionAprox ?? undefined,
         plant: {
           ...entrada.plant,
           family: entrada.plant.family ?? undefined,

@@ -16,6 +16,10 @@ function datosPublicos(usuario: {
   name: string;
   createdAt: Date;
   esAdmin: boolean;
+  bio: string | null;
+  avatarUrl: string | null;
+  ubicacionTexto: string | null;
+  compartirPerfil: boolean;
 }): User {
   return {
     id: usuario.id,
@@ -23,6 +27,10 @@ function datosPublicos(usuario: {
     name: usuario.name,
     createdAt: usuario.createdAt.toISOString(),
     esAdmin: usuario.esAdmin,
+    bio: usuario.bio ?? undefined,
+    avatarUrl: usuario.avatarUrl ?? undefined,
+    ubicacionTexto: usuario.ubicacionTexto ?? undefined,
+    compartirPerfil: usuario.compartirPerfil,
   };
 }
 

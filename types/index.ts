@@ -6,6 +6,10 @@ export interface User {
   name: string;
   createdAt: string;
   esAdmin: boolean;
+  bio?: string;
+  avatarUrl?: string;
+  ubicacionTexto?: string;
+  compartirPerfil: boolean;
 }
 
 export interface Plant {
@@ -28,6 +32,7 @@ export interface CollectionEntry {
   notes?: string;
   latitude?: number;
   longitude?: number;
+  ubicacionAprox?: string;
   privado: boolean;
   identifiedAt: string;
   plant: Plant;

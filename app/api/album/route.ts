@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
+import { ubicacionAproximada } from "@/lib/geocoding";
 
 export async function GET() {
   const usuario = await obtenerUsuarioServidor();
@@ -36,8 +37,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Planta no encontrada" }, { status: 404 });
   }
 
+  const ubicacionAprox =
+    latitude !== undefined && longitude !== undefined
+      ? await ubicacionAproximada(latitude, longitude)
+      : null;
+
   const entrada = await prisma.collectionEntry.create({
-    data: { userId: usuario.id, plantId, photos: [photoUrl], notes, latitude, longitude },
+    data: {
+      userId: usuario.id,
+      plantId,
+      photos: [photoUrl],
+      notes,
+      latitude,
+      longitude,
+      ubicacionAprox,
+    },
     include: { plant: true },
   });
 
