@@ -389,7 +389,7 @@ campo (una caminata, un parque sin cobertura).
 - **async/await**, nunca `.then()` encadenados
 - Respuestas consistentes: `{ success: boolean, data?: T, error?: string }`
 - **Nunca guardar fotos en el servidor** — van a Cloudinary, solo se guarda la URL
-- **Validar con Zod** los inputs de los route handlers antes de tocar Prisma (no está en uso todavía, agregar cuando se construya Sprint 2+; `plantfolio-api` tiene el patrón en `middleware/validate.ts` para copiar la idea)
+- **Validar con Zod** los inputs de todo route handler que reciba body — `lib/validar.ts` (`parsearBody(req, schema)`) devuelve `{ data }` o `{ error: NextResponse }` listo para retornar; el esquema se define en el mismo archivo del route handler, no en un archivo aparte (mismo patrón que `plantfolio-api` en `middleware/validate.ts`). Los mensajes de error van en español, incluidos los de campo faltante/tipo inválido (`z.string({ error: "..." })`, no solo `.min()`)
 - Sin comentarios explicando el qué, solo el porqué cuando no sea obvio
 - **No instalar librerías fuera del stack sin confirmar** — el mapa usa Leaflet + OpenStreetMap (sin API key ni costo, a diferencia de Google Maps/Mapbox)
 
