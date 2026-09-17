@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { esNativaDeChile } from "@/lib/floraNativaChile";
+import { parsearBody } from "@/lib/validar";
+
+const manualSchema = z.object({
+  nombre: z.string({ error: "Escribí el nombre de la planta" }).trim().min(1, "Escribí el nombre de la planta"),
+});
 
 export async function POST(req: NextRequest) {
   const usuario = await obtenerUsuarioServidor();
@@ -9,15 +15,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
   }
 
-  const { nombre } = (await req.json()) as { nombre: string };
-  const nombreLimpio = nombre?.trim();
+  const validacion = await parsearBody(req, manualSchema);
+  if ("error" in validacion) return validacion.error;
 
-  if (!nombreLimpio) {
-    return NextResponse.json(
-      { success: false, error: "Escribí el nombre de la planta" },
-      { status: 400 }
-    );
-  }
+  const { nombre: nombreLimpio } = validacion.data;
 
   const existente = await prisma.plant.findFirst({
     where: {

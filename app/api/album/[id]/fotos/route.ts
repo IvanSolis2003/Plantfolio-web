@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { subirImagen } from "@/lib/cloudinary";
+import { parsearBody } from "@/lib/validar";
 
 export const maxDuration = 60;
 
 const MAX_FOTOS = 3;
+
+const agregarFotoSchema = z.object({
+  image: z.string({ error: "Imagen requerida" }).min(1, "Imagen requerida"),
+});
+
+const eliminarFotoSchema = z.object({
+  url: z.string({ error: "url requerida" }).min(1, "url requerida"),
+});
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const usuario = await obtenerUsuarioServidor();
@@ -27,7 +37,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     );
   }
 
-  const { image } = (await req.json()) as { image: string };
+  const validacion = await parsearBody(req, agregarFotoSchema);
+  if ("error" in validacion) return validacion.error;
+
+  const { image } = validacion.data;
 
   let url: string;
   try {
@@ -66,7 +79,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     );
   }
 
-  const { url } = (await req.json()) as { url: string };
+  const validacionDelete = await parsearBody(req, eliminarFotoSchema);
+  if ("error" in validacionDelete) return validacionDelete.error;
+
+  const { url } = validacionDelete.data;
   const actualizada = await prisma.collectionEntry.update({
     where: { id },
     data: { photos: entrada.photos.filter((f) => f !== url) },

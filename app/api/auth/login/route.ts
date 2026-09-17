@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { crearSesion } from "@/lib/sesion";
 import { estadoDe, MENSAJE_POR_ESTADO } from "@/lib/cuentas";
+import { parsearBody } from "@/lib/validar";
+
+const loginSchema = z.object({
+  email: z.string({ error: "El correo es requerido" }).trim().toLowerCase().email("Correo inválido"),
+  password: z.string({ error: "La contraseña es requerida" }).min(1, "La contraseña es requerida"),
+});
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as { email: string; password: string };
-  const email = body.email.trim().toLowerCase();
-  const { password } = body;
+  const validacion = await parsearBody(req, loginSchema);
+  if ("error" in validacion) return validacion.error;
+
+  const { email, password } = validacion.data;
 
   const usuario = await prisma.user.findUnique({ where: { email } });
   if (!usuario) {
