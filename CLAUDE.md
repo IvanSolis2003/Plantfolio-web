@@ -71,7 +71,7 @@ store/authStore.ts        ← Zustand, solo el usuario (no el token)
 prisma/
 ├── schema.prisma          ← modelos de datos
 └── seed.ts                ← 18 especies reales de flora nativa chilena
-public/sw.js               ← service worker (cache-first assets, offline fallback)
+public/sw.js               ← service worker (assets + páginas del álbum en cache, fallback offline)
 ```
 
 ---
@@ -346,6 +346,32 @@ ejecución (`update: { ...planta, nativeToChile: true }`, ya no `update: {}`)
 para poder corregir o ampliar el texto sin tener que borrar la fila a mano;
 correr `npx prisma db seed` después de editar `FLORA_CHILENA` para que los
 cambios lleguen a producción (misma base que dev, ver sección de Prisma).
+
+## 📴 Modo offline: ver el álbum sin conexión
+
+Identificar una planta requiere conexión sí o sí (llama a PlantNet y a
+Cloudinary), así que no es realista un modo offline para identificar sin un
+modelo local (fuera de alcance). Lo que sí se implementó: **ver la
+colección ya guardada sin señal**, pensado para revisar el álbum en el
+campo (una caminata, un parque sin cobertura).
+
+- `public/sw.js` cachea las páginas de navegación (network-first: intenta
+  la red, si falla sirve la última copia en cache, y si nunca se cacheó
+  muestra la pantalla de "Sin conexión") — antes el service worker nunca
+  guardaba las respuestas de navegación exitosas, así que la pantalla de
+  "Sin conexión" aparecía casi siempre en vez de la última versión vista.
+- Las fotos se cachean igual que el resto de assets estáticos porque
+  `next/image` las sirve a través de `/_next/image?url=...` (mismo
+  origen), **no** hay que manejar Cloudinary como origen cruzado — el
+  optimizador de Next.js ya hace de proxy.
+- Al cerrar sesión (`BotonSalir.tsx`), se manda un `postMessage("limpiar-paginas")`
+  al service worker para borrar el cache de páginas — evita que en un
+  dispositivo compartido el álbum de un usuario quede visible offline
+  para el siguiente que inicia sesión.
+- Limitación conocida y aceptada: el cache de páginas es por URL, no por
+  usuario, así que hasta el próximo logout/página nueva, la copia offline
+  siempre es "la última que se vio", puede no reflejar cambios hechos en
+  otro dispositivo.
 
 ---
 
