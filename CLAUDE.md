@@ -290,8 +290,8 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
 `POST /api/album` fallaba con "planta no encontrada" porque exigía un
 `plantId` que no existía. Flujo tal como quedó implementado:
 
-1. Usuario abre **Escanear**, toma foto con `<input type="file" capture="environment">` o la sube desde galería
-2. Foto se convierte a base64 en el cliente (`archivoABase64` en `FormularioEscanear.tsx`)
+1. Usuario abre **Escanear**, toma foto con `<input type="file" accept="image/*">` o la sube desde galería (sin `capture`, ver trampa más abajo)
+2. Foto se normaliza a JPEG base64 en el cliente (`archivoAJpegBase64` en `lib/imagenCliente.ts`, recodifica vía canvas para evitar problemas de formato con HEIC de iPhone y comprime a 1600px máx)
 3. `POST /api/identify` recibe el base64, corre **en paralelo** (`Promise.all`)
    `identificarPlanta()` (PlantNet) y `subirImagen()` (Cloudinary) — importante en
    Vercel, donde el límite de duración por defecto es más corto que hacerlas en
@@ -362,6 +362,32 @@ que hace `dynamic(() => import("./MapaLeaflet"), { ssr: false })` — el
 Component, no directo en un Server Component. Los íconos default de Leaflet
 también rompen con bundlers si no se referencian explícito — se usan los PNG
 de `unpkg.com/leaflet` por URL en vez de pelear con el bundling de assets.
+
+## ⚠️ Trampa: `capture="environment"` bloquea la galería en iOS
+
+`<input type="file" capture="environment">` fuerza la cámara nativa en varios
+navegadores móviles (Safari/iOS incluido) y **elimina la opción de elegir una
+foto ya tomada desde la galería** — el usuario reportó esto dos veces por
+separado: primero en `DetalleCliente.tsx` (agregar foto extra a una entrada
+del álbum) y después en `FormularioEscanear.tsx` (pantalla Escanear), porque
+al arreglar la primera se asumió sin evidencia que en Escanear sí convenía
+forzar cámara. Fix en ambos casos: sacar el atributo `capture` y dejar solo
+`accept="image/*"` — el navegador ofrece cámara y galería como opciones. Si
+se necesita subir una imagen desde un `<input type="file">` en cualquier
+pantalla nueva, no agregar `capture` salvo pedido explícito.
+
+## ⚠️ Trampa: fotos de iPhone (HEIC) rompían la subida silenciosamente
+
+Un archivo HEIC de la librería de fotos de iPhone podía tirar un error de
+cliente tipo "The string did not match the expected pattern" en Safari/WebKit
+al intentar subir una segunda foto — no reproducible desde curl ni con el SDK
+de Cloudinary directo (se descartó como bug de servidor). Fix: `lib/imagenCliente.ts`
+(`archivoAJpegBase64`) recodifica cualquier imagen a JPEG vía
+`<img>` → `<canvas>` → `toDataURL("image/jpeg", 0.85)` antes de mandarla al
+servidor, en vez de perseguir la causa exacta del error nativo. Usado en los
+tres lugares donde el cliente sube una imagen: `FormularioEscanear.tsx`,
+`DetalleCliente.tsx` (fotos del álbum), `EditarPerfil.tsx` (avatar). Cualquier
+input de foto nuevo debe usar esta función, no un `FileReader` a mano.
 
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
