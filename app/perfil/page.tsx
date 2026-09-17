@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { calcularLogros } from "@/lib/logros";
 import BotonSalir from "./BotonSalir";
+import ToggleColeccionPrivada from "./ToggleColeccionPrivada";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +15,11 @@ export const metadata = {
 export default async function PerfilPage() {
   const usuario = await obtenerUsuarioServidor();
   if (!usuario) redirect("/entrar");
+
+  const { coleccionPrivada } = await prisma.user.findUniqueOrThrow({
+    where: { id: usuario.id },
+    select: { coleccionPrivada: true },
+  });
 
   const entradas = await prisma.collectionEntry.findMany({
     where: { userId: usuario.id },
@@ -85,6 +92,17 @@ export default async function PerfilPage() {
           </div>
         ))}
       </div>
+
+      <ToggleColeccionPrivada valorInicial={coleccionPrivada} />
+
+      {usuario.esAdmin && (
+        <Link
+          href="/admin"
+          className="mb-4 block rounded-xl border border-accent py-3 text-center font-semibold text-primary"
+        >
+          Panel de administración
+        </Link>
+      )}
 
       <BotonSalir />
     </div>

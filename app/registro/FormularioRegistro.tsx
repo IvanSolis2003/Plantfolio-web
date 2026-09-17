@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { ApiResponse, AuthTokens } from "@/types";
+import type { ApiResponse } from "@/types";
 
 export default function FormularioRegistro() {
   const [name, setName] = useState("");
@@ -12,7 +11,7 @@ export default function FormularioRegistro() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [mensaje, setMensaje] = useState<string | null>(null);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -38,16 +37,28 @@ export default function FormularioRegistro() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
       });
-      const data: ApiResponse<AuthTokens> = await respuesta.json();
-      if (!data.success) throw new Error(data.error ?? "Error al registrarse");
+      const data: ApiResponse<{ id: string; mensaje: string }> = await respuesta.json();
+      if (!data.success || !data.data) throw new Error(data.error ?? "Error al registrarse");
 
-      router.push("/");
-      router.refresh();
+      setMensaje(data.data.mensaje);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al registrarse");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (mensaje) {
+    return (
+      <div className="flex min-h-dvh flex-1 flex-col items-center justify-center bg-background px-6 text-center">
+        <span className="mb-3 text-5xl">📬</span>
+        <p className="mb-2 text-xl font-bold text-primary">Revisa tu correo</p>
+        <p className="mb-6 text-sm text-muted">{mensaje}</p>
+        <Link href="/entrar" className="rounded-xl bg-primary px-6 py-3 font-bold text-white">
+          Ir a entrar
+        </Link>
+      </div>
+    );
   }
 
   return (

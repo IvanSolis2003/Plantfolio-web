@@ -47,6 +47,14 @@ export default async function HomePage() {
         </Link>
       </div>
 
+      <Link
+        href="/galeria"
+        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-accent bg-surface p-3 text-center"
+      >
+        <span className="text-xl">🌍</span>
+        <span className="text-sm font-semibold text-primary">Ver galería pública</span>
+      </Link>
+
       <div className="mt-4 rounded-2xl bg-accent/30 p-4">
         <p className="mb-1 font-bold text-primary">🇨🇱 Flora Chilena</p>
         <p className="text-sm text-text">

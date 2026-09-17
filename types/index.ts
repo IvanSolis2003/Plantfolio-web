@@ -5,6 +5,7 @@ export interface User {
   email: string;
   name: string;
   createdAt: string;
+  esAdmin: boolean;
 }
 
 export interface Plant {
@@ -27,6 +28,7 @@ export interface CollectionEntry {
   notes?: string;
   latitude?: number;
   longitude?: number;
+  privado: boolean;
   identifiedAt: string;
   plant: Plant;
 }

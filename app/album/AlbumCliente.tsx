@@ -8,7 +8,8 @@ import type { ApiResponse, CollectionEntry, Rarity } from "@/types";
 
 const RAREZAS: Rarity[] = ["COMUN", "POCO_COMUN", "ENDEMICA", "PROTEGIDA", "CASI_EXTINTA"];
 
-export default function AlbumCliente({ entradas }: { entradas: CollectionEntry[] }) {
+export default function AlbumCliente({ entradas: entradasIniciales }: { entradas: CollectionEntry[] }) {
+  const [entradas, setEntradas] = useState(entradasIniciales);
   const [busqueda, setBusqueda] = useState("");
   const [rarezaFiltro, setRarezaFiltro] = useState<Rarity | "TODAS">("TODAS");
   const [eliminando, setEliminando] = useState<string | null>(null);
@@ -37,6 +38,21 @@ export default function AlbumCliente({ entradas }: { entradas: CollectionEntry[]
       router.refresh();
     } catch {
       setEliminando(null);
+    }
+  }
+
+  async function handleTogglePrivado(entrada: CollectionEntry) {
+    const nuevoValor = !entrada.privado;
+    setEntradas((prev) => prev.map((e) => (e.id === entrada.id ? { ...e, privado: nuevoValor } : e)));
+
+    const respuesta = await fetch(`/api/album/${entrada.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ privado: nuevoValor }),
+    });
+    const data: ApiResponse<CollectionEntry> = await respuesta.json();
+    if (!data.success) {
+      setEntradas((prev) => prev.map((e) => (e.id === entrada.id ? { ...e, privado: entrada.privado } : e)));
     }
   }
 
@@ -99,8 +115,15 @@ export default function AlbumCliente({ entradas }: { entradas: CollectionEntry[]
               />
               <p className="truncate text-sm font-bold text-primary">{entrada.plant.commonName}</p>
               <p className="truncate text-xs italic text-muted">{entrada.plant.scientificName}</p>
-              <div className="my-1.5">
+              <div className="my-1.5 flex items-center justify-between">
                 <RarityBadge rarity={entrada.plant.rarity} />
+                <button
+                  onClick={() => handleTogglePrivado(entrada)}
+                  title={entrada.privado ? "Privada — click para hacerla pública" : "Pública — click para ocultarla"}
+                  className={`text-sm ${entrada.privado ? "opacity-100" : "opacity-30"}`}
+                >
+                  🔒
+                </button>
               </div>
               <button
                 onClick={() => handleEliminar(entrada.id)}

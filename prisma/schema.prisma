@@ -15,11 +15,17 @@ enum Rarity {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  createdAt DateTime @default(now())
+  id               String    @id @default(cuid())
+  email            String    @unique
+  password         String
+  name             String
+  createdAt        DateTime  @default(now())
+  emailVerificado  DateTime?
+  tokenVerificacion String?  @unique
+  tokenExpira      DateTime?
+  aprobado         Boolean   @default(false)
+  esAdmin          Boolean   @default(false)
+  coleccionPrivada Boolean   @default(false)
 
   sessions AuthSession[]
   entries  CollectionEntry[]
@@ -65,6 +71,7 @@ model CollectionEntry {
   notes        String?
   latitude     Float?
   longitude    Float?
+  privado      Boolean  @default(false)
   identifiedAt DateTime @default(now())
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)

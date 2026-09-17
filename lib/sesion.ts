@@ -10,12 +10,19 @@ function huella(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function datosPublicos(usuario: { id: string; email: string; name: string; createdAt: Date }): User {
+function datosPublicos(usuario: {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+  esAdmin: boolean;
+}): User {
   return {
     id: usuario.id,
     email: usuario.email,
     name: usuario.name,
     createdAt: usuario.createdAt.toISOString(),
+    esAdmin: usuario.esAdmin,
   };
 }
 
@@ -46,7 +53,7 @@ export async function cerrarSesion(): Promise<void> {
   almacen.delete(NOMBRE_COOKIE);
 }
 
-async function obtenerUsuarioId(): Promise<string | null> {
+export async function obtenerUsuarioId(): Promise<string | null> {
   const almacen = await cookies();
   const token = almacen.get(NOMBRE_COOKIE)?.value;
   if (!token) return null;
