@@ -127,7 +127,6 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
             <input
               type="file"
               accept="image/*"
-              capture="environment"
               className="hidden"
               disabled={subiendoFoto}
               onChange={handleAgregarFoto}

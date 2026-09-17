@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { subirImagen } from "@/lib/cloudinary";
 
+export const maxDuration = 60;
+
 const MAX_FOTOS = 3;
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
