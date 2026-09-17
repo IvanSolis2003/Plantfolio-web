@@ -5,18 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
+import { archivoAJpegBase64 } from "@/lib/imagenCliente";
 import type { ApiResponse, CollectionEntry } from "@/types";
 
 const MAX_FOTOS = 3;
-
-function archivoABase64(archivo: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const lector = new FileReader();
-    lector.onload = () => resolve(lector.result as string);
-    lector.onerror = reject;
-    lector.readAsDataURL(archivo);
-  });
-}
 
 export default function DetalleCliente({ entrada: entradaInicial }: { entrada: CollectionEntry }) {
   const [entrada, setEntrada] = useState(entradaInicial);
@@ -55,7 +47,7 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
     setSubiendoFoto(true);
     setError(null);
     try {
-      const base64 = await archivoABase64(archivo);
+      const base64 = await archivoAJpegBase64(archivo);
       const respuesta = await fetch(`/api/album/${entrada.id}/fotos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

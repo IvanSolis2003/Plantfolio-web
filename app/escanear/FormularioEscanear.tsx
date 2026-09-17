@@ -4,16 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
+import { archivoAJpegBase64 } from "@/lib/imagenCliente";
 import type { ApiResponse, CollectionEntry, IdentifyResponse, IdentifyResult } from "@/types";
-
-function archivoABase64(archivo: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const lector = new FileReader();
-    lector.onload = () => resolve(lector.result as string);
-    lector.onerror = reject;
-    lector.readAsDataURL(archivo);
-  });
-}
 
 function obtenerUbicacion(): Promise<GeolocationPosition | null> {
   return new Promise((resolve) => {
@@ -53,7 +45,7 @@ export default function FormularioEscanear() {
     setCargando(true);
 
     try {
-      const base64 = await archivoABase64(archivo);
+      const base64 = await archivoAJpegBase64(archivo);
       const respuesta = await fetch("/api/identify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

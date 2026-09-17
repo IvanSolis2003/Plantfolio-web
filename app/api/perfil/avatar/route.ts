@@ -12,7 +12,14 @@ export async function POST(req: NextRequest) {
   }
 
   const { image } = (await req.json()) as { image: string };
-  const avatarUrl = await subirImagen(image);
+
+  let avatarUrl: string;
+  try {
+    avatarUrl = await subirImagen(image);
+  } catch (err) {
+    console.error("avatar:", err);
+    return NextResponse.json({ success: false, error: "Error al subir la foto" }, { status: 500 });
+  }
 
   await prisma.user.update({ where: { id: userId }, data: { avatarUrl } });
 

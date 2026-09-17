@@ -3,16 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { archivoAJpegBase64 } from "@/lib/imagenCliente";
 import type { ApiResponse } from "@/types";
-
-function archivoABase64(archivo: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const lector = new FileReader();
-    lector.onload = () => resolve(lector.result as string);
-    lector.onerror = reject;
-    lector.readAsDataURL(archivo);
-  });
-}
 
 export default function EditarPerfil({
   avatarUrl: avatarInicial,
@@ -32,6 +24,7 @@ export default function EditarPerfil({
   const [subiendoAvatar, setSubiendoAvatar] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleAvatar(e: React.ChangeEvent<HTMLInputElement>) {
@@ -39,18 +32,20 @@ export default function EditarPerfil({
     if (!archivo) return;
 
     setSubiendoAvatar(true);
+    setError(null);
     try {
-      const base64 = await archivoABase64(archivo);
+      const base64 = await archivoAJpegBase64(archivo);
       const respuesta = await fetch("/api/perfil/avatar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64 }),
       });
       const data: ApiResponse<{ avatarUrl: string }> = await respuesta.json();
-      if (data.success && data.data) {
-        setAvatarUrl(data.data.avatarUrl);
-        router.refresh();
-      }
+      if (!data.success || !data.data) throw new Error(data.error ?? "Error al subir el avatar");
+      setAvatarUrl(data.data.avatarUrl);
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al subir el avatar");
     } finally {
       setSubiendoAvatar(false);
       e.target.value = "";
@@ -95,6 +90,8 @@ export default function EditarPerfil({
           onChange={handleAvatar}
         />
       </label>
+
+      {error && <p className="mb-2 text-xs font-medium text-danger">{error}</p>}
 
       <div className="w-full">
         <label className="mb-1 block text-xs font-medium text-text">Bio</label>

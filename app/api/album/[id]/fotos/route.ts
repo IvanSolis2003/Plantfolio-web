@@ -28,7 +28,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const { image } = (await req.json()) as { image: string };
-  const url = await subirImagen(image);
+
+  let url: string;
+  try {
+    url = await subirImagen(image);
+  } catch (err) {
+    console.error("agregar-foto:", err);
+    return NextResponse.json({ success: false, error: "Error al subir la foto" }, { status: 500 });
+  }
 
   const actualizada = await prisma.collectionEntry.update({
     where: { id },
