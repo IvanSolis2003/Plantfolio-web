@@ -14,7 +14,7 @@
 | **Tipo** | PWA — Coleccionista de plantas (identificación por IA, álbum, mapa de hallazgos) |
 | **Desarrollador** | Iván Solís Manqueo |
 | **Ubicación** | Talca, Región del Maule, Chile |
-| **Estado** | Sprint 1-4 completos + cuentas con aprobación de admin + privacidad, todo verificado en producción (falta solo notificaciones push). |
+| **Estado** | Sprint 1-4 completos + cuentas con aprobación de admin + privacidad + landing pública + ficha de detalle con multi-foto, todo verificado en producción (falta solo notificaciones push). |
 | **Producción** | https://plantfolio-web.vercel.app |
 
 Existió primero como app Android nativa (Expo/React Native + backend Express
@@ -35,6 +35,7 @@ app/
 ├── registro/            ← registro (page.tsx + FormularioRegistro.tsx cliente)
 ├── perfil/              ← perfil + logout + estadísticas reales (BotonSalir.tsx cliente)
 ├── album/               ← listar/buscar/filtrar/borrar (AlbumCliente.tsx cliente)
+│   └── [id]/             ← ficha de detalle: fotos (máx 3) + nota libre (DetalleCliente.tsx)
 ├── escanear/            ← identificar + agregar al álbum (FormularioEscanear.tsx cliente)
 ├── mapa/                ← mapa Leaflet con marcadores (MapaCliente.tsx + MapaLeaflet.tsx)
 ├── api/auth/            ← route handlers: login, registro, logout, me
@@ -46,12 +47,13 @@ app/
 ├── admin/               ← panel de cuentas (page.tsx + BotonAprobar.tsx), notFound() si no es admin
 ├── verificar/            ← resuelve el token de verificación de email
 ├── galeria/              ← pública, sin login, álbum de todos salvo lo marcado privado
+├── LandingPublica.tsx    ← lo que ve un visitante sin sesión en / (hero + preview de galería)
 ├── AlertaRiego.tsx       ← cliente, pide geolocalización best-effort, se muestra en Inicio
 ├── layout.tsx           ← resuelve sesión server-side, PWA, React Query
 ├── manifest.ts           ← manifest de PWA
 ├── registrar-sw.tsx      ← registra el service worker (solo producción)
 └── page.tsx              ← Inicio
-components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge
+components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge, HeaderPublico
 lib/
 ├── prisma.ts             ← PrismaClient + adapter de Neon
 ├── sesion.ts             ← sesión en BD (crearSesion/cerrarSesion/obtenerUsuarioServidor/obtenerUsuarioId)
@@ -151,7 +153,7 @@ model CollectionEntry {
   id           String   @id @default(cuid())
   userId       String
   plantId      String
-  photoUrl     String
+  photos       String[]
   notes        String?
   latitude     Float?
   longitude    Float?
@@ -188,10 +190,12 @@ correr el seed de nuevo no duplica nada).
 | POST | `/api/auth/logout` | Borra sesión | ✅ |
 | GET | `/api/auth/me` | Usuario autenticado actual | ✅ |
 | POST | `/api/identify` | Envía foto a PlantNet + Cloudinary + upsert de Plant | ✅ |
-| GET/POST | `/api/album` | Álbum del usuario (POST reusa el `photoUrl` que ya subió identify, no resube) | ✅ |
+| GET/POST | `/api/album` | Álbum del usuario (POST reusa la foto que ya subió identify, no resube) | ✅ |
 | DELETE | `/api/album/:id` | Eliminar entrada (chequea ownership) | ✅ |
+| PATCH | `/api/album/:id` | `{ privado?, notes? }` — actualiza lo que venga (chequea ownership) | ✅ |
+| POST | `/api/album/:id/fotos` | Agrega una foto (máx 3, sube a Cloudinary) | ✅ |
+| DELETE | `/api/album/:id/fotos` | Saca una foto por URL (mín 1) | ✅ |
 | GET | `/api/album/mapa` | Entradas con GPS, para el mapa Leaflet | ✅ |
-| PATCH | `/api/album/:id` | Toggle de `privado` (chequea ownership) | ✅ |
 | GET | `/api/clima` | Alerta de riego (requiere `?lat=&lon=`) | ✅ |
 | POST | `/api/admin/aprobar` | Habilita una cuenta (solo `esAdmin`) | ✅ |
 | POST | `/api/perfil/privacidad` | Toggle de `coleccionPrivada` | ✅ |
@@ -362,7 +366,7 @@ asumir que es un bug de código — puede ser solo cuestión de esperar.
 - [x] `GET/POST/DELETE /api/album`
 - [x] Estadísticas reales en Perfil (plantas/especies/raras)
 - [x] Búsqueda y filtro por rareza en álbum (client-side, sin paginación)
-- [ ] Detalle por entrada (hoy solo hay grid + eliminar, no una vista de detalle separada)
+- [x] Detalle por entrada (`/album/:id`, fotos + nota libre)
 
 ### ✅ Sprint 4 — Mapa, Gamificación y Riego
 - [x] Mapa interactivo con Leaflet + OpenStreetMap, `GET /api/album/mapa`
