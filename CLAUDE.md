@@ -14,7 +14,7 @@
 | **Tipo** | PWA — Coleccionista de plantas (identificación por IA, álbum, mapa de hallazgos) |
 | **Desarrollador** | Iván Solís Manqueo |
 | **Ubicación** | Talca, Región del Maule, Chile |
-| **Estado** | Sprint 1-3 completos y verificados en producción. Sprint 4 pendiente. |
+| **Estado** | Sprint 1-4 completos y verificados en producción (falta solo notificaciones push). |
 | **Producción** | https://plantfolio-web.vercel.app |
 
 Existió primero como app Android nativa (Expo/React Native + backend Express
@@ -36,10 +36,12 @@ app/
 ├── perfil/              ← perfil + logout + estadísticas reales (BotonSalir.tsx cliente)
 ├── album/               ← listar/buscar/filtrar/borrar (AlbumCliente.tsx cliente)
 ├── escanear/            ← identificar + agregar al álbum (FormularioEscanear.tsx cliente)
-├── mapa/                ← placeholder, Sprint 4
+├── mapa/                ← mapa Leaflet con marcadores (MapaCliente.tsx + MapaLeaflet.tsx)
 ├── api/auth/            ← route handlers: login, registro, logout, me
 ├── api/identify/        ← PlantNet + Cloudinary + upsert de Plant
-├── api/album/           ← GET/POST + DELETE [id]
+├── api/album/           ← GET/POST + DELETE [id] + GET mapa
+├── api/clima/           ← alerta de riego según OpenWeather
+├── AlertaRiego.tsx       ← cliente, pide geolocalización best-effort, se muestra en Inicio
 ├── layout.tsx           ← resuelve sesión server-side, PWA, React Query
 ├── manifest.ts           ← manifest de PWA
 ├── registrar-sw.tsx      ← registra el service worker (solo producción)
@@ -49,9 +51,13 @@ lib/
 ├── prisma.ts             ← PrismaClient + adapter de Neon
 ├── sesion.ts             ← sesión en BD (crearSesion/cerrarSesion/obtenerUsuarioServidor)
 ├── plantnet.ts           ← identifica especie, mapea confianza→rareza
-└── cloudinary.ts         ← sube foto, devuelve solo la URL
+├── cloudinary.ts         ← sube foto, devuelve solo la URL
+├── clima.ts              ← alerta de riego según humedad/temperatura
+└── logros.ts             ← calcula logros al vuelo desde el álbum (sin tabla nueva)
 store/authStore.ts        ← Zustand, solo el usuario (no el token)
-prisma/schema.prisma       ← modelos de datos
+prisma/
+├── schema.prisma          ← modelos de datos
+└── seed.ts                ← 18 especies reales de flora nativa chilena
 public/sw.js               ← service worker (cache-first assets, offline fallback)
 ```
 
@@ -73,7 +79,7 @@ public/sw.js               ← service worker (cache-first assets, offline fallb
 | **PlantNet API** | Identificación de plantas por foto | ✅ Configurado (`PLANTNET_API_KEY`) |
 | **Cloudinary** | Storage de imágenes (solo guardar la URL) | ✅ Configurado |
 | **Neon.tech** | PostgreSQL | ✅ Configurado |
-| **OpenWeather API** | Alertas de riego según clima (Sprint 4) | No implementado en ningún repo |
+| **OpenWeather API** | Alertas de riego según clima | ✅ Configurado (`OPENWEATHER_API_KEY`) — key nueva, verificar que ya esté activa (tardan unas horas) |
 
 ⚠️ **No es Plant.id.** El plan original y el CLAUDE.md viejo mencionaban Plant.id,
 pero pasó a ser un producto B2B sin free tier self-service claro. Se cambió a
@@ -151,10 +157,10 @@ model IdentificationLog {
 }
 ```
 
-La tabla `plants` deja de estar vacía a medida que se identifican especies
-(`/api/identify` hace `upsert` por `scientificName`), pero el **seed de flora
-nativa chilena** completo sigue siendo tarea de Sprint 4 — hoy el catálogo solo
-tiene lo que los usuarios fueron identificando.
+La tabla `plants` ya tiene 18 especies nativas chilenas sembradas
+(`prisma/seed.ts`, correr con `npx prisma db seed`) más lo que se va
+identificando (`/api/identify` hace `upsert` por `scientificName`, así que
+correr el seed de nuevo no duplica nada).
 
 ---
 
@@ -169,8 +175,9 @@ tiene lo que los usuarios fueron identificando.
 | POST | `/api/identify` | Envía foto a PlantNet + Cloudinary + upsert de Plant | ✅ |
 | GET/POST | `/api/album` | Álbum del usuario (POST reusa el `photoUrl` que ya subió identify, no resube) | ✅ |
 | DELETE | `/api/album/:id` | Eliminar entrada (chequea ownership) | ✅ |
-| GET | `/api/plants` | Catálogo (con filtros) | ⏳ Sprint 4 |
-| GET | `/api/album/mapa` | Entradas con GPS | ⏳ Sprint 4 |
+| GET | `/api/album/mapa` | Entradas con GPS, para el mapa Leaflet | ✅ |
+| GET | `/api/clima` | Alerta de riego (requiere `?lat=&lon=`) | ✅ |
+| GET | `/api/plants` | Catálogo completo con filtros (no hay pantalla que lo use todavía) | ⏳ |
 
 Todos se implementan como Route Handlers con Prisma directo — **no existe
 un backend separado al que llamar.**
@@ -212,7 +219,7 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
 - **Nunca guardar fotos en el servidor** — van a Cloudinary, solo se guarda la URL
 - **Validar con Zod** los inputs de los route handlers antes de tocar Prisma (no está en uso todavía, agregar cuando se construya Sprint 2+; `plantfolio-api` tiene el patrón en `middleware/validate.ts` para copiar la idea)
 - Sin comentarios explicando el qué, solo el porqué cuando no sea obvio
-- **No instalar librerías fuera del stack sin confirmar** — para Sprint 4 (mapa) hay que decidir la librería web (Leaflet, Mapbox GL, Google Maps JS) antes de agregarla
+- **No instalar librerías fuera del stack sin confirmar** — el mapa usa Leaflet + OpenStreetMap (sin API key ni costo, a diferencia de Google Maps/Mapbox)
 
 ## 📋 Reglas — Prisma / Sesión
 
@@ -240,6 +247,25 @@ permisos), pero `cloudinary.uploader.upload()` falla con 403 genérico
 **Settings → API Keys → rol de la key** antes de asumir que el código está
 mal. `ping()` que funciona + `upload()` que falla con 403 = problema de
 permisos de la key, no de credenciales ni de código.
+
+## ⚠️ Trampa: Leaflet necesita `ssr: false`
+
+`leaflet` toca `window` al importarse, así que un componente que lo use no
+puede renderizarse en el servidor (`window is not defined`). Patrón usado:
+`app/mapa/page.tsx` (server) pasa los datos a `MapaCliente.tsx` ("use client"),
+que hace `dynamic(() => import("./MapaLeaflet"), { ssr: false })` — el
+`ssr: false` de `next/dynamic` solo se puede usar dentro de un Client
+Component, no directo en un Server Component. Los íconos default de Leaflet
+también rompen con bundlers si no se referencian explícito — se usan los PNG
+de `unpkg.com/leaflet` por URL en vez de pelear con el bundling de assets.
+
+## ⚠️ API keys nuevas pueden tardar en activarse
+
+PlantNet y Cloudinary respondieron al toque, pero **OpenWeather tarda un par
+de horas** en activar una key recién creada (401 hasta entonces, mismo error
+que una key inválida). Si un endpoint nuevo con una API key falla justo
+después de crearla, probar con `curl` directo a la API externa antes de
+asumir que es un bug de código — puede ser solo cuestión de esperar.
 
 ## 📋 Reglas — Frontend
 
@@ -271,13 +297,12 @@ permisos de la key, no de credenciales ni de código.
 - [x] Búsqueda y filtro por rareza en álbum (client-side, sin paginación)
 - [ ] Detalle por entrada (hoy solo hay grid + eliminar, no una vista de detalle separada)
 
-### ⏳ Sprint 4 — Mapa y Gamificación
-- [ ] Mapa interactivo (elegir librería web: Leaflet/Mapbox/Google Maps)
-- [ ] `GET /api/album/mapa`
-- [ ] Sistema de logros básico (no arrancado)
-- [ ] Alertas de riego con OpenWeather (env var existe, sin usar en ningún repo)
-- [ ] Seed de flora nativa chilena en la tabla `plants` (hoy vacía)
-- [ ] Notificaciones — evaluar Web Push como reemplazo de Expo Notifications
+### ✅ Sprint 4 — Mapa, Gamificación y Riego
+- [x] Mapa interactivo con Leaflet + OpenStreetMap, `GET /api/album/mapa`
+- [x] Sistema de logros (7 logros, calculados al vuelo desde el álbum — `lib/logros.ts`)
+- [x] Alertas de riego con OpenWeather — `GET /api/clima`, componente `AlertaRiego` en Inicio
+- [x] Seed de flora nativa chilena — 18 especies reales en `prisma/seed.ts`
+- [ ] Notificaciones — evaluar Web Push como reemplazo de Expo Notifications (sin arrancar, es la única pieza que queda)
 
 ---
 
