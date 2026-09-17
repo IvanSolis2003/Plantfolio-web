@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   const entrada = await prisma.collectionEntry.create({
-    data: { userId: usuario.id, plantId, photoUrl, notes, latitude, longitude },
+    data: { userId: usuario.id, plantId, photos: [photoUrl], notes, latitude, longitude },
     include: { plant: true },
   });
 

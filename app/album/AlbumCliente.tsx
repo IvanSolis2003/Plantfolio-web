@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
 import type { ApiResponse, CollectionEntry, Rarity } from "@/types";
@@ -106,15 +107,17 @@ export default function AlbumCliente({ entradas: entradasIniciales }: { entradas
         <div className="grid grid-cols-2 gap-3">
           {filtradas.map((entrada) => (
             <div key={entrada.id} className="rounded-2xl border border-accent bg-surface p-2">
-              <Image
-                src={entrada.photoUrl}
-                alt={entrada.plant.commonName}
-                width={200}
-                height={160}
-                className="mb-2 h-28 w-full rounded-xl object-cover"
-              />
-              <p className="truncate text-sm font-bold text-primary">{entrada.plant.commonName}</p>
-              <p className="truncate text-xs italic text-muted">{entrada.plant.scientificName}</p>
+              <Link href={`/album/${entrada.id}`}>
+                <Image
+                  src={entrada.photos[0]}
+                  alt={entrada.plant.commonName}
+                  width={200}
+                  height={160}
+                  className="mb-2 h-28 w-full rounded-xl object-cover"
+                />
+                <p className="truncate text-sm font-bold text-primary">{entrada.plant.commonName}</p>
+                <p className="truncate text-xs italic text-muted">{entrada.plant.scientificName}</p>
+              </Link>
               <div className="my-1.5 flex items-center justify-between">
                 <RarityBadge rarity={entrada.plant.rarity} />
                 <button

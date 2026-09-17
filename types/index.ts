@@ -24,7 +24,7 @@ export interface CollectionEntry {
   id: string;
   userId: string;
   plantId: string;
-  photoUrl: string;
+  photos: string[];
   notes?: string;
   latitude?: number;
   longitude?: number;

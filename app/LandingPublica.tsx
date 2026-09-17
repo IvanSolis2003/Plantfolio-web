@@ -56,7 +56,7 @@ export default async function LandingPublica() {
             {entradas.map((entrada) => (
               <div key={entrada.id} className="rounded-2xl border border-accent bg-surface p-2">
                 <Image
-                  src={entrada.photoUrl}
+                  src={entrada.photos[0]}
                   alt={entrada.plant.commonName}
                   width={200}
                   height={160}

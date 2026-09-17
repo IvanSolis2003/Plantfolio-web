@@ -67,7 +67,7 @@ model CollectionEntry {
   id           String   @id @default(cuid())
   userId       String
   plantId      String
-  photoUrl     String
+  photos       String[]
   notes        String?
   latitude     Float?
   longitude    Float?
