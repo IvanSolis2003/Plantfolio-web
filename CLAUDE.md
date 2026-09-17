@@ -211,6 +211,7 @@ correr el seed de nuevo no duplica nada).
 | PATCH | `/api/perfil` | `{ bio?, ubicacionTexto?, compartirPerfil? }` | ✅ |
 | POST | `/api/perfil/avatar` | Sube avatar a Cloudinary | ✅ |
 | GET | `/api/plants` | Catálogo completo con filtros (no hay pantalla que lo use todavía) | ⏳ |
+| POST | `/api/plantas/manual` | Busca por nombre (común o científico) y crea la planta si no existe | ✅ |
 
 Todos se implementan como Route Handlers con Prisma directo — **no existe
 un backend separado al que llamar.**
@@ -312,6 +313,13 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
    **reusando el mismo `photoUrl`** (no vuelve a subir la foto a Cloudinary) y
    captura GPS best-effort con `navigator.geolocation` (si el usuario niega el
    permiso, se guarda sin coordenadas, no bloquea)
+9. Si ninguna de las 3 coincide, debajo del botón de reintentar hay un campo
+   para escribir el nombre a mano — `POST /api/plantas/manual` busca por
+   `commonName` o `scientificName` (sin distinguir mayúsculas) y crea la
+   planta si no existe, con `rarity` en `COMUN` y `nativeToChile` calculado
+   con la misma lista curada que usa la identificación por cámara
+   (`lib/floraNativaChile.ts`). Reusa el `photoUrl` ya subido, igual que al
+   elegir una de las 3 candidatas — no hay una segunda subida a Cloudinary.
 
 ## ⚠️ Trampa: `nativeToChile` siempre en `false` para especies nuevas
 
