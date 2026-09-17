@@ -30,6 +30,7 @@ export default function FormularioEscanear() {
   const [seleccionada, setSeleccionada] = useState<IdentifyResult | null>(null);
   const [nombreManual, setNombreManual] = useState("");
   const [buscandoManual, setBuscandoManual] = useState(false);
+  const [soloIdentificada, setSoloIdentificada] = useState(false);
   const router = useRouter();
 
   function reiniciar() {
@@ -37,6 +38,7 @@ export default function FormularioEscanear() {
     setSeleccionada(null);
     setNombreManual("");
     setGuardado(false);
+    setSoloIdentificada(false);
     setError(null);
   }
 
@@ -97,6 +99,12 @@ export default function FormularioEscanear() {
     } finally {
       setBuscandoManual(false);
     }
+  }
+
+  function handleSoloIdentificar() {
+    if (!seleccionada) return;
+    setSoloIdentificada(true);
+    setError(null);
   }
 
   async function handleAgregarAlbum() {
@@ -190,19 +198,37 @@ export default function FormularioEscanear() {
             })}
           </div>
 
-          <button
-            onClick={handleAgregarAlbum}
-            disabled={!seleccionada || guardando || guardado}
-            className="mb-2 w-full rounded-xl bg-primary py-3 text-center font-semibold text-white disabled:opacity-60"
-          >
-            {guardado ? "Agregada al álbum ✓" : guardando ? "Guardando..." : "Agregar al álbum"}
-          </button>
+          {soloIdentificada && seleccionada && (
+            <div className="mb-3 w-full rounded-2xl border border-primary bg-primary/10 p-3 text-center">
+              <p className="font-bold text-primary">{seleccionada.commonName}</p>
+              <p className="text-sm italic text-muted">{seleccionada.scientificName}</p>
+              <p className="mt-1 text-xs text-muted">Identificada, no se guardó en tu álbum.</p>
+            </div>
+          )}
+
+          <div className="mb-2 flex w-full gap-2">
+            <button
+              onClick={handleAgregarAlbum}
+              disabled={!seleccionada || guardando || guardado}
+              className="flex-1 rounded-xl bg-primary py-3 text-center font-semibold text-white disabled:opacity-60"
+            >
+              {guardado ? "Agregada ✓" : guardando ? "Guardando..." : "Agregar al álbum"}
+            </button>
+
+            <button
+              onClick={handleSoloIdentificar}
+              disabled={!seleccionada || guardando}
+              className="flex-1 rounded-xl border border-primary py-3 text-center font-semibold text-primary disabled:opacity-60"
+            >
+              Solo identificar
+            </button>
+          </div>
 
           <button
             onClick={reiniciar}
             className="mb-4 w-full rounded-xl border border-accent py-3 text-center font-semibold text-muted"
           >
-            Ninguna es correcta — volver a intentar
+            {soloIdentificada || guardado ? "Identificar otra" : "Ninguna es correcta — volver a intentar"}
           </button>
 
           <div className="w-full rounded-2xl border border-dashed border-accent bg-surface p-3">
