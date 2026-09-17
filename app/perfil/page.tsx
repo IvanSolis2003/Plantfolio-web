@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import BotonSalir from "./BotonSalir";
 
@@ -8,15 +9,24 @@ export const metadata = {
   title: "Mi perfil — Plantfolio",
 };
 
-const ESTADISTICAS = [
-  { label: "Plantas", value: "0" },
-  { label: "Especies", value: "0" },
-  { label: "Raras", value: "0" },
-];
-
 export default async function PerfilPage() {
   const usuario = await obtenerUsuarioServidor();
   if (!usuario) redirect("/entrar");
+
+  const entradas = await prisma.collectionEntry.findMany({
+    where: { userId: usuario.id },
+    include: { plant: true },
+  });
+
+  const plantas = entradas.length;
+  const especies = new Set(entradas.map((entrada) => entrada.plantId)).size;
+  const raras = entradas.filter((entrada) => entrada.plant.rarity !== "COMUN").length;
+
+  const estadisticas = [
+    { label: "Plantas", value: plantas },
+    { label: "Especies", value: especies },
+    { label: "Raras", value: raras },
+  ];
 
   return (
     <div className="flex min-h-dvh flex-col bg-background px-6">
@@ -29,7 +39,7 @@ export default async function PerfilPage() {
       </div>
 
       <div className="mb-6 flex gap-3">
-        {ESTADISTICAS.map((stat) => (
+        {estadisticas.map((stat) => (
           <div
             key={stat.label}
             className="flex flex-1 flex-col items-center rounded-xl border border-accent bg-surface p-3"

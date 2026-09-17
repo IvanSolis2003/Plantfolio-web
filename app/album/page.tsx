@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
+import AlbumCliente from "./AlbumCliente";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +13,28 @@ export default async function AlbumPage() {
   const usuario = await obtenerUsuarioServidor();
   if (!usuario) redirect("/entrar");
 
+  const entradas = await prisma.collectionEntry.findMany({
+    where: { userId: usuario.id },
+    include: { plant: true },
+    orderBy: { identifiedAt: "desc" },
+  });
+
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-background">
-      <span className="mb-3 text-4xl">📗</span>
-      <p className="text-xl font-bold text-primary">Mi Álbum</p>
-      <p className="mt-2 text-sm text-muted">Próximamente en Sprint 3</p>
-    </div>
+    <AlbumCliente
+      entradas={entradas.map((entrada) => ({
+        ...entrada,
+        identifiedAt: entrada.identifiedAt.toISOString(),
+        notes: entrada.notes ?? undefined,
+        latitude: entrada.latitude ?? undefined,
+        longitude: entrada.longitude ?? undefined,
+        plant: {
+          ...entrada.plant,
+          family: entrada.plant.family ?? undefined,
+          description: entrada.plant.description ?? undefined,
+          careInstructions: entrada.plant.careInstructions ?? undefined,
+          diseases: entrada.plant.diseases ?? undefined,
+        },
+      }))}
+    />
   );
 }
