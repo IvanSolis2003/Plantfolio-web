@@ -330,6 +330,23 @@ el dato desde una señal que no lo tiene — PlantNet en ambos casos — usando
 datos curados en vez de una API externa nueva). Si se agrega una especie
 nativa que falte, sumarla al `Set` de `lib/floraNativaChile.ts`.
 
+## 🌱 Cuidados y plagas por especie
+
+`Plant.careInstructions` y `Plant.diseases` existían en el schema desde el
+principio pero nunca se poblaban ni se mostraban en ninguna pantalla. Se
+completaron para las 18 especies de `prisma/seed.ts` con texto práctico en
+español (riego, luz, suelo, plagas/enfermedades comunes) y se agregó la
+sección "Cuidados" / "Plagas y enfermedades comunes" en `DetalleCliente.tsx`
+(ficha privada) y `app/galeria/[id]/page.tsx` (ficha pública), renderizada
+condicionalmente solo si el dato existe. Especies identificadas por cámara
+que no están en la lista curada quedan sin estos campos (`null`) hasta que
+se agreguen a mano en `seed.ts` — no hay generación automática de este
+contenido. El `upsert` del seed ahora actualiza estos campos en cada
+ejecución (`update: { ...planta, nativeToChile: true }`, ya no `update: {}`)
+para poder corregir o ampliar el texto sin tener que borrar la fila a mano;
+correr `npx prisma db seed` después de editar `FLORA_CHILENA` para que los
+cambios lleguen a producción (misma base que dev, ver sección de Prisma).
+
 ---
 
 ## 📋 Reglas Generales
