@@ -146,6 +146,20 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
         {new Date(entrada.identifiedAt).toLocaleDateString("es-CL")}
       </p>
 
+      {entrada.plant.careInstructions && (
+        <>
+          <p className="mb-1 text-sm font-bold text-primary">Cuidados</p>
+          <p className="mb-3 text-sm text-text">{entrada.plant.careInstructions}</p>
+        </>
+      )}
+
+      {entrada.plant.diseases && (
+        <>
+          <p className="mb-1 text-sm font-bold text-primary">Plagas y enfermedades comunes</p>
+          <p className="mb-4 text-sm text-text">{entrada.plant.diseases}</p>
+        </>
+      )}
+
       <p className="mb-1 text-sm font-bold text-primary">Mi nota</p>
       <p className="mb-2 text-xs text-muted">
         Agregá lo que quieras: desde cuándo la tenés, edad, cuidados, ubicación en tu casa...

@@ -69,6 +69,20 @@ export default async function DetallePublicoPage({
           </p>
         )}
 
+        {entrada.plant.careInstructions && (
+          <>
+            <p className="mb-1 text-sm font-bold text-primary">Cuidados</p>
+            <p className="mb-3 text-sm text-text">{entrada.plant.careInstructions}</p>
+          </>
+        )}
+
+        {entrada.plant.diseases && (
+          <>
+            <p className="mb-1 text-sm font-bold text-primary">Plagas y enfermedades comunes</p>
+            <p className="mb-4 text-sm text-text">{entrada.plant.diseases}</p>
+          </>
+        )}
+
         <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent bg-surface p-4">
           {user.compartirPerfil && user.avatarUrl ? (
             <Image
