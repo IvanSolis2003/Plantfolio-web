@@ -197,17 +197,22 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
    `identificarPlanta()` (PlantNet) y `subirImagen()` (Cloudinary) — importante en
    Vercel, donde el límite de duración por defecto es más corto que hacerlas en
    secuencia (ver `maxDuration = 60` en el route handler)
-4. PlantNet responde: nombre científico, nombre común, familia, confianza
+4. PlantNet responde **hasta 3 especies candidatas** (no solo la más probable —
+   error real que se corrigió: al principio solo se usaba `results[0]`, pero el
+   usuario probó con una foto ambigua y no daba opción de elegir otra si la
+   primera estaba mal)
 5. El handler hace `prisma.plant.upsert({ where: { scientificName }, ... })`
-   antes de responder, así siempre hay un `plantId` válido — esto es lo que
-   cierra el gap del plan original
-6. Se guarda `IdentificationLog` y se devuelve el resultado (con `plantId` y
-   `photoUrl` ya resueltos) al cliente
-7. Usuario ve el resultado con `RarityBadge`; si confirma "Agregar al álbum",
-   `POST /api/album` crea el `CollectionEntry` **reusando el mismo `photoUrl`**
-   (no vuelve a subir la foto a Cloudinary) y captura GPS best-effort con
-   `navigator.geolocation` (si el usuario niega el permiso, se guarda sin
-   coordenadas, no bloquea)
+   **para cada una de las 3 candidatas en paralelo** antes de responder, así
+   las 3 ya tienen `plantId` válido sin importar cuál elija el usuario
+6. Se guarda un `IdentificationLog` con la respuesta cruda y la confianza de la
+   mejor candidata, y se devuelve `{ photoUrl, candidatos: [...] }` al cliente
+7. Usuario ve las 3 opciones con nombre, `RarityBadge` y % de coincidencia, y
+   elige una (estado local, sin llamada al servidor); si ninguna es correcta,
+   "Ninguna es correcta — volver a intentar" resetea todo para subir otra foto
+8. Al confirmar la elegida, `POST /api/album` crea el `CollectionEntry`
+   **reusando el mismo `photoUrl`** (no vuelve a subir la foto a Cloudinary) y
+   captura GPS best-effort con `navigator.geolocation` (si el usuario niega el
+   permiso, se guarda sin coordenadas, no bloquea)
 
 ---
 
