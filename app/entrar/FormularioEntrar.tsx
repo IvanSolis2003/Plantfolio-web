@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import CreditoIasmtech from "@/components/CreditoIasmtech";
 import type { ApiResponse, AuthTokens } from "@/types";
 
 export default function FormularioEntrar() {
@@ -93,6 +94,8 @@ export default function FormularioEntrar() {
             Regístrate
           </Link>
         </div>
+
+        <CreditoIasmtech />
       </div>
     </div>
   );

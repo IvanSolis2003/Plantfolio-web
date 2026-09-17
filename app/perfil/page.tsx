@@ -6,6 +6,7 @@ import { calcularLogros } from "@/lib/logros";
 import BotonSalir from "./BotonSalir";
 import ToggleColeccionPrivada from "./ToggleColeccionPrivada";
 import EditarPerfil from "./EditarPerfil";
+import CreditoIasmtech from "@/components/CreditoIasmtech";
 
 export const dynamic = "force-dynamic";
 
@@ -111,6 +112,8 @@ export default async function PerfilPage() {
       )}
 
       <BotonSalir />
+
+      <CreditoIasmtech />
     </div>
   );
 }

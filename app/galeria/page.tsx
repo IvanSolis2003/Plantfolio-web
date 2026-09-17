@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import RarityBadge from "@/components/RarityBadge";
 import HeaderPublico from "@/components/HeaderPublico";
+import CreditoIasmtech from "@/components/CreditoIasmtech";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,8 @@ export default async function GaleriaPage() {
             ))}
           </div>
         )}
+
+        <CreditoIasmtech />
       </div>
     </div>
   );

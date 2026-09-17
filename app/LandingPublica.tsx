@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import HeaderPublico from "@/components/HeaderPublico";
 import RarityBadge from "@/components/RarityBadge";
+import CreditoIasmtech from "@/components/CreditoIasmtech";
 
 export default async function LandingPublica() {
   const entradas = await prisma.collectionEntry.findMany({
@@ -80,6 +81,8 @@ export default async function LandingPublica() {
           <span className="text-xl">🌍</span>
           <span className="text-sm font-semibold text-primary">Ver galería pública completa</span>
         </Link>
+
+        <CreditoIasmtech />
       </div>
     </div>
   );

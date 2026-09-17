@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import CreditoIasmtech from "@/components/CreditoIasmtech";
 import type { ApiResponse } from "@/types";
 
 export default function FormularioRegistro() {
@@ -57,6 +58,7 @@ export default function FormularioRegistro() {
         <Link href="/entrar" className="rounded-xl bg-primary px-6 py-3 font-bold text-white">
           Ir a entrar
         </Link>
+        <CreditoIasmtech />
       </div>
     );
   }
@@ -140,6 +142,8 @@ export default function FormularioRegistro() {
             Inicia sesión
           </Link>
         </div>
+
+        <CreditoIasmtech />
       </div>
     </div>
   );

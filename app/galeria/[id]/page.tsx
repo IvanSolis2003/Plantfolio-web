@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import RarityBadge from "@/components/RarityBadge";
 import HeaderPublico from "@/components/HeaderPublico";
+import CreditoIasmtech from "@/components/CreditoIasmtech";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 
 export const dynamic = "force-dynamic";
@@ -92,6 +93,8 @@ export default async function DetallePublicoPage({
             )}
           </div>
         </div>
+
+        <CreditoIasmtech />
       </div>
     </div>
   );
