@@ -1,13 +1,13 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import AlertaRiego from "./AlertaRiego";
+import LandingPublica from "./LandingPublica";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const usuario = await obtenerUsuarioServidor();
-  if (!usuario) redirect("/entrar");
+  if (!usuario) return <LandingPublica />;
 
   return (
     <div className="min-h-dvh bg-background px-5 pt-12 pb-6">
