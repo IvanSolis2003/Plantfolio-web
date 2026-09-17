@@ -14,7 +14,7 @@
 | **Tipo** | PWA — Coleccionista de plantas (identificación por IA, álbum, mapa de hallazgos) |
 | **Desarrollador** | Iván Solís Manqueo |
 | **Ubicación** | Talca, Región del Maule, Chile |
-| **Estado** | Sprint 1-4 completos + cuentas con aprobación de admin + privacidad + landing pública + ficha de detalle con multi-foto, todo verificado en producción (falta solo notificaciones push). |
+| **Estado** | Sprint 1-4 + cuentas con aprobación de admin + privacidad + landing pública + ficha de detalle multi-foto + perfil personalizable con ubicación aproximada, todo verificado en producción (falta solo notificaciones push). |
 | **Producción** | https://plantfolio-web.vercel.app |
 
 Existió primero como app Android nativa (Expo/React Native + backend Express
@@ -44,9 +44,12 @@ app/
 ├── api/clima/           ← alerta de riego según OpenWeather
 ├── api/admin/aprobar/   ← solo esAdmin, habilita una cuenta
 ├── api/perfil/privacidad/ ← toggle de coleccionPrivada
+├── api/perfil/           ← PATCH bio/ubicacionTexto/compartirPerfil
+├── api/perfil/avatar/    ← sube foto de perfil a Cloudinary
 ├── admin/               ← panel de cuentas (page.tsx + BotonAprobar.tsx), notFound() si no es admin
 ├── verificar/            ← resuelve el token de verificación de email
 ├── galeria/              ← pública, sin login, álbum de todos salvo lo marcado privado
+│   └── [id]/             ← ficha pública de una planta: ubicación siempre visible, perfil solo si compartirPerfil
 ├── LandingPublica.tsx    ← lo que ve un visitante sin sesión en / (hero + preview de galería)
 ├── AlertaRiego.tsx       ← cliente, pide geolocalización best-effort, se muestra en Inicio
 ├── layout.tsx           ← resuelve sesión server-side, PWA, React Query
@@ -62,6 +65,7 @@ lib/
 ├── plantnet.ts           ← identifica especie, mapea confianza→rareza
 ├── cloudinary.ts         ← sube foto, devuelve solo la URL
 ├── clima.ts              ← alerta de riego según humedad/temperatura
+├── geocoding.ts          ← reverse geocoding con Nominatim, coordenadas redondeadas
 └── logros.ts             ← calcula logros al vuelo desde el álbum (sin tabla nueva)
 store/authStore.ts        ← Zustand, solo el usuario (no el token)
 prisma/
@@ -123,6 +127,10 @@ model User {
   aprobado          Boolean   @default(false)
   esAdmin           Boolean   @default(false)
   coleccionPrivada  Boolean   @default(false)
+  bio               String?
+  avatarUrl         String?
+  ubicacionTexto    String?
+  compartirPerfil   Boolean   @default(false)
   sessions  AuthSession[]
   entries   CollectionEntry[]
   logs      IdentificationLog[]
@@ -157,6 +165,7 @@ model CollectionEntry {
   notes        String?
   latitude     Float?
   longitude    Float?
+  ubicacionAprox String?
   privado      Boolean  @default(false)
   identifiedAt DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
@@ -199,6 +208,8 @@ correr el seed de nuevo no duplica nada).
 | GET | `/api/clima` | Alerta de riego (requiere `?lat=&lon=`) | ✅ |
 | POST | `/api/admin/aprobar` | Habilita una cuenta (solo `esAdmin`) | ✅ |
 | POST | `/api/perfil/privacidad` | Toggle de `coleccionPrivada` | ✅ |
+| PATCH | `/api/perfil` | `{ bio?, ubicacionTexto?, compartirPerfil? }` | ✅ |
+| POST | `/api/perfil/avatar` | Sube avatar a Cloudinary | ✅ |
 | GET | `/api/plants` | Catálogo completo con filtros (no hay pantalla que lo use todavía) | ⏳ |
 
 Todos se implementan como Route Handlers con Prisma directo — **no existe
@@ -247,6 +258,28 @@ propia privacidad en dos niveles — **no es el admin quien la marca**:
 - **Por colección completa:** toggle en Perfil (`ToggleColeccionPrivada.tsx`),
   `POST /api/perfil/privacidad { coleccionPrivada }` — oculta todo el álbum
   del usuario de la galería sin tocar el flag de cada entrada individual
+
+`/galeria/:id` es la ficha pública de una planta (sin login, solo si la entrada
+es visible según las reglas de arriba). Dos niveles de información, con
+umbrales de privacidad distintos:
+
+- **Ubicación aproximada de la planta — siempre visible**, sin opt-in. Se
+  resuelve **una sola vez**, al guardar en el álbum (`POST /api/album` llama a
+  `lib/geocoding.ts` → Nominatim/OpenStreetMap con las coordenadas redondeadas
+  a 2 decimales, ~1km de precisión, para no revelar una dirección exacta), y
+  queda cacheada en `CollectionEntry.ubicacionAprox` — nunca se re-consulta al
+  mostrar la ficha.
+- **Datos de la persona (bio, foto, ciudad) — solo si `User.compartirPerfil`
+  es `true`.** Es opt-in, default `false`. Se edita en `EditarPerfil.tsx`
+  (`/perfil`), `PATCH /api/perfil { bio, ubicacionTexto, compartirPerfil }` +
+  `POST /api/perfil/avatar` para la foto (sube a Cloudinary, mismo patrón que
+  las fotos de plantas).
+
+⚠️ No confundir `CollectionEntry.ubicacionAprox` (de la planta, siempre
+pública) con `User.ubicacionTexto` (de la persona, gateada por
+`compartirPerfil`) — son campos distintos con reglas de visibilidad distintas
+a propósito, verificado con valores diferentes en cada uno para confirmar que
+no se mezclan en la ficha pública.
 
 ---
 
