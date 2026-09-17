@@ -32,13 +32,12 @@ export interface CollectionEntry {
 }
 
 export interface IdentifyResult {
+  plantId: string;
+  photoUrl: string;
   scientificName: string;
   commonName: string;
   confidence: number;
   family?: string;
-  description?: string;
-  careInstructions?: string;
-  diseases?: string;
   rarity: Rarity;
   nativeToChile: boolean;
 }
