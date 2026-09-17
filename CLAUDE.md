@@ -313,6 +313,23 @@ paso de identificar nunca creaba el `Plant` en el catálogo, así que
    captura GPS best-effort con `navigator.geolocation` (si el usuario niega el
    permiso, se guarda sin coordenadas, no bloquea)
 
+## ⚠️ Trampa: `nativeToChile` siempre en `false` para especies nuevas
+
+PlantNet no informa si una especie es nativa de Chile, así que el campo
+`nativeToChile` de una `Plant` recién creada por `POST /api/identify`
+dependía por completo de que esa especie ya existiera en la base (el
+`upsert` con `update: {}` preserva el valor si ya está, pero al crearla por
+primera vez no había forma de saberlo, y quedaba en `false` para siempre —
+las 18 especies de `prisma/seed.ts` estaban bien porque ya existían antes de
+que nadie las escaneara, pero cualquier otra nativa real quedaba mal
+marcada). Fix: `lib/floraNativaChile.ts` tiene una lista curada (ampliación
+de las 18 sembradas) que `identificarPlanta()` en `lib/plantnet.ts` consulta
+para calcular `nativeToChile` en el momento de identificar, no solo cuando
+ya está en Postgres. Mismo espíritu que el fix de `rarity` (evitar inventar
+el dato desde una señal que no lo tiene — PlantNet en ambos casos — usando
+datos curados en vez de una API externa nueva). Si se agrega una especie
+nativa que falte, sumarla al `Set` de `lib/floraNativaChile.ts`.
+
 ---
 
 ## 📋 Reglas Generales
