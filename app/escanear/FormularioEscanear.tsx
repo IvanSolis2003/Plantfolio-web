@@ -107,7 +107,6 @@ export default function FormularioEscanear() {
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             disabled={cargando}
             onChange={handleArchivo}
