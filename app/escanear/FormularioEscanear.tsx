@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
-import type { ApiResponse, CollectionEntry, IdentifyResult } from "@/types";
+import type { ApiResponse, CollectionEntry, IdentifyResponse, IdentifyResult } from "@/types";
 
 function archivoABase64(archivo: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -34,15 +34,22 @@ export default function FormularioEscanear() {
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resultado, setResultado] = useState<IdentifyResult | null>(null);
+  const [resultado, setResultado] = useState<IdentifyResponse | null>(null);
+  const [seleccionada, setSeleccionada] = useState<IdentifyResult | null>(null);
   const router = useRouter();
+
+  function reiniciar() {
+    setResultado(null);
+    setSeleccionada(null);
+    setGuardado(false);
+    setError(null);
+  }
 
   async function handleArchivo(e: React.ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
 
-    setError(null);
-    setResultado(null);
+    reiniciar();
     setCargando(true);
 
     try {
@@ -52,11 +59,10 @@ export default function FormularioEscanear() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64 }),
       });
-      const data: ApiResponse<IdentifyResult> = await respuesta.json();
+      const data: ApiResponse<IdentifyResponse> = await respuesta.json();
       if (!data.success || !data.data) throw new Error(data.error ?? "Error al identificar planta");
 
       setResultado(data.data);
-      setGuardado(false);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al identificar planta");
     } finally {
@@ -66,7 +72,7 @@ export default function FormularioEscanear() {
   }
 
   async function handleAgregarAlbum() {
-    if (!resultado) return;
+    if (!seleccionada) return;
 
     setGuardando(true);
     setError(null);
@@ -77,8 +83,8 @@ export default function FormularioEscanear() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          plantId: resultado.plantId,
-          photoUrl: resultado.photoUrl,
+          plantId: seleccionada.plantId,
+          photoUrl: seleccionada.photoUrl,
           latitude: posicion?.coords.latitude,
           longitude: posicion?.coords.longitude,
         }),
@@ -100,49 +106,76 @@ export default function FormularioEscanear() {
       <span className="mb-3 text-4xl">🔍</span>
       <p className="mb-6 text-xl font-bold text-primary">Identificar Planta</p>
 
-      <label className="mb-4 flex w-full max-w-sm cursor-pointer flex-col items-center rounded-2xl border border-accent bg-surface p-6 text-center">
-        <span className="mb-2 text-3xl">📷</span>
-        <span className="font-semibold text-primary">
-          {cargando ? "Identificando..." : "Tomar o subir foto"}
-        </span>
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          disabled={cargando}
-          onChange={handleArchivo}
-        />
-      </label>
+      {!resultado && (
+        <label className="mb-4 flex w-full max-w-sm cursor-pointer flex-col items-center rounded-2xl border border-accent bg-surface p-6 text-center">
+          <span className="mb-2 text-3xl">📷</span>
+          <span className="font-semibold text-primary">
+            {cargando ? "Identificando..." : "Tomar o subir foto"}
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            disabled={cargando}
+            onChange={handleArchivo}
+          />
+        </label>
+      )}
 
       {error && <p className="text-sm font-medium text-danger">{error}</p>}
 
       {resultado && (
-        <div className="w-full max-w-sm rounded-2xl border border-accent bg-surface p-4">
+        <div className="w-full max-w-sm">
           <Image
             src={resultado.photoUrl}
-            alt={resultado.commonName}
+            alt="Foto identificada"
             width={400}
             height={300}
             className="mb-3 h-48 w-full rounded-xl object-cover"
           />
-          <p className="text-lg font-bold text-primary">{resultado.commonName}</p>
-          <p className="mb-2 text-sm italic text-muted">{resultado.scientificName}</p>
-          <p className="text-sm text-text">
-            Familia: {resultado.family ?? "Desconocida"}
+
+          <p className="mb-2 text-sm font-semibold text-text">
+            ¿Cuál de estas opciones es tu planta?
           </p>
-          <div className="my-2">
-            <RarityBadge rarity={resultado.rarity} />
+
+          <div className="mb-4 flex flex-col gap-2">
+            {resultado.candidatos.map((candidato) => {
+              const elegida = seleccionada?.plantId === candidato.plantId;
+              return (
+                <button
+                  key={candidato.plantId}
+                  onClick={() => setSeleccionada(candidato)}
+                  className={`rounded-2xl border p-3 text-left ${
+                    elegida ? "border-primary bg-primary/10" : "border-accent bg-surface"
+                  }`}
+                >
+                  <p className="font-bold text-primary">{candidato.commonName}</p>
+                  <p className="mb-1 text-sm italic text-muted">{candidato.scientificName}</p>
+                  <div className="flex items-center gap-2">
+                    <RarityBadge rarity={candidato.rarity} />
+                    <span className="text-xs text-muted">
+                      {Math.round(candidato.confidence * 100)}% de coincidencia
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
-          <p className="mb-4 text-sm text-text">
-            Confianza: {Math.round(resultado.confidence * 100)}%
-          </p>
+
           <button
             onClick={handleAgregarAlbum}
-            disabled={guardando || guardado}
-            className="w-full rounded-xl bg-primary py-3 text-center font-semibold text-white disabled:opacity-60"
+            disabled={!seleccionada || guardando || guardado}
+            className="mb-2 w-full rounded-xl bg-primary py-3 text-center font-semibold text-white disabled:opacity-60"
           >
             {guardado ? "Agregada al álbum ✓" : guardando ? "Guardando..." : "Agregar al álbum"}
+          </button>
+
+          <button
+            onClick={reiniciar}
+            className="w-full rounded-xl border border-accent py-3 text-center font-semibold text-muted"
+          >
+            Ninguna es correcta — volver a intentar
           </button>
         </div>
       )}

@@ -42,6 +42,11 @@ export interface IdentifyResult {
   nativeToChile: boolean;
 }
 
+export interface IdentifyResponse {
+  photoUrl: string;
+  candidatos: IdentifyResult[];
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

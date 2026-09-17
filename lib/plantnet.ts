@@ -1,14 +1,15 @@
 import { Rarity } from "@prisma/client";
 
-interface ResultadoIdentificacion {
+export interface CandidatoIdentificacion {
   scientificName: string;
   commonName: string;
   confidence: number;
   family?: string;
   rarity: Rarity;
   nativeToChile: boolean;
-  rawResponse: unknown;
 }
+
+const MAX_CANDIDATOS = 3;
 
 function mapearConfianzaARareza(confidence: number): Rarity {
   if (confidence >= 0.95) return "CASI_EXTINTA";
@@ -18,7 +19,9 @@ function mapearConfianzaARareza(confidence: number): Rarity {
   return "COMUN";
 }
 
-export async function identificarPlanta(base64: string): Promise<ResultadoIdentificacion> {
+export async function identificarPlanta(
+  base64: string
+): Promise<{ candidatos: CandidatoIdentificacion[]; rawResponse: unknown }> {
   const datos = base64.includes(",") ? base64.split(",")[1] : base64;
   const buffer = Buffer.from(datos, "base64");
 
@@ -34,23 +37,32 @@ export async function identificarPlanta(base64: string): Promise<ResultadoIdenti
   }
 
   const data = await respuesta.json();
-  const resultado = data?.results?.[0];
-  if (!resultado) {
+  const resultados: unknown[] = data?.results ?? [];
+  if (resultados.length === 0) {
     throw new Error("No se pudo identificar la planta");
   }
 
-  const confidence: number = resultado.score ?? 0;
-  const scientificName: string = resultado.species?.scientificNameWithoutAuthor ?? "Desconocida";
-  const commonName: string = resultado.species?.commonNames?.[0] ?? scientificName;
-  const family: string | undefined = resultado.species?.family?.scientificNameWithoutAuthor;
+  const candidatos: CandidatoIdentificacion[] = resultados.slice(0, MAX_CANDIDATOS).map((r) => {
+    const resultado = r as {
+      score?: number;
+      species?: {
+        scientificNameWithoutAuthor?: string;
+        commonNames?: string[];
+        family?: { scientificNameWithoutAuthor?: string };
+      };
+    };
+    const confidence = resultado.score ?? 0;
+    const scientificName = resultado.species?.scientificNameWithoutAuthor ?? "Desconocida";
 
-  return {
-    scientificName,
-    commonName,
-    confidence,
-    family,
-    rarity: mapearConfianzaARareza(confidence),
-    nativeToChile: false,
-    rawResponse: data,
-  };
+    return {
+      scientificName,
+      commonName: resultado.species?.commonNames?.[0] ?? scientificName,
+      confidence,
+      family: resultado.species?.family?.scientificNameWithoutAuthor,
+      rarity: mapearConfianzaARareza(confidence),
+      nativeToChile: false,
+    };
+  });
+
+  return { candidatos, rawResponse: data };
 }
