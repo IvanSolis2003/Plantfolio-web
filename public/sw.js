@@ -1,4 +1,8 @@
-const CACHE = "plantfolio-v1";
+const VERSION = 2;
+const CACHE_ESTATICO = `plantfolio-estatico-v${VERSION}`;
+const CACHE_PAGINAS = `plantfolio-paginas-v${VERSION}`;
+const CACHES_VALIDOS = [CACHE_ESTATICO, CACHE_PAGINAS];
+
 const RECURSOS_BASE = ["/icon.png", "/manifest.webmanifest"];
 
 const SIN_CONEXION = `<!doctype html>
@@ -22,7 +26,7 @@ function respuestaSinConexion() {
 self.addEventListener("install", (evento) => {
   evento.waitUntil(
     caches
-      .open(CACHE)
+      .open(CACHE_ESTATICO)
       .then((cache) =>
         Promise.allSettled(RECURSOS_BASE.map((recurso) => cache.add(recurso)))
       )
@@ -36,25 +40,67 @@ self.addEventListener("activate", (evento) => {
       .keys()
       .then((claves) =>
         Promise.all(
-          claves.filter((clave) => clave !== CACHE).map((clave) => caches.delete(clave))
+          claves.filter((clave) => !CACHES_VALIDOS.includes(clave)).map((clave) => caches.delete(clave))
         )
       )
       .then(() => self.clients.claim())
   );
 });
 
+self.addEventListener("message", (evento) => {
+  if (evento.data === "limpiar-paginas") {
+    evento.waitUntil(caches.delete(CACHE_PAGINAS));
+  }
+});
+
 function esInmutable(url) {
   return (
     url.pathname.startsWith("/_next/static/") ||
+    url.pathname === "/_next/image" ||
     /\.(png|jpg|jpeg|webp|svg|woff2?)$/i.test(url.pathname)
   );
+}
+
+function cacheFirst(peticion, nombreCache) {
+  return caches.match(peticion).then((cacheada) => {
+    if (cacheada) return cacheada;
+
+    return fetch(peticion)
+      .then((respuesta) => {
+        if (respuesta.ok) {
+          const copia = respuesta.clone();
+          caches.open(nombreCache).then((cache) => cache.put(peticion, copia));
+        }
+        return respuesta;
+      })
+      .catch(() => Response.error());
+  });
+}
+
+function networkFirstNavegacion(peticion) {
+  return fetch(peticion)
+    .then((respuesta) => {
+      if (respuesta.ok) {
+        const copia = respuesta.clone();
+        caches.open(CACHE_PAGINAS).then((cache) => cache.put(peticion, copia));
+      }
+      return respuesta;
+    })
+    .catch(async () => {
+      const cacheada = await caches.match(peticion, { cacheName: CACHE_PAGINAS });
+      return cacheada ?? respuestaSinConexion();
+    });
 }
 
 self.addEventListener("fetch", (evento) => {
   const peticion = evento.request;
   const url = new URL(peticion.url);
 
-  if (peticion.method !== "GET" || url.origin !== self.location.origin) {
+  if (peticion.method !== "GET") {
+    return;
+  }
+
+  if (url.origin !== self.location.origin) {
     return;
   }
 
@@ -63,12 +109,7 @@ self.addEventListener("fetch", (evento) => {
   }
 
   if (peticion.mode === "navigate") {
-    evento.respondWith(
-      fetch(peticion).catch(async () => {
-        const cacheada = await caches.match(peticion);
-        return cacheada ?? respuestaSinConexion();
-      })
-    );
+    evento.respondWith(networkFirstNavegacion(peticion));
     return;
   }
 
@@ -76,19 +117,5 @@ self.addEventListener("fetch", (evento) => {
     return;
   }
 
-  evento.respondWith(
-    caches.match(peticion).then((cacheada) => {
-      if (cacheada) return cacheada;
-
-      return fetch(peticion)
-        .then((respuesta) => {
-          if (respuesta.ok) {
-            const copia = respuesta.clone();
-            caches.open(CACHE).then((cache) => cache.put(peticion, copia));
-          }
-          return respuesta;
-        })
-        .catch(() => Response.error());
-    })
-  );
+  evento.respondWith(cacheFirst(peticion, CACHE_ESTATICO));
 });

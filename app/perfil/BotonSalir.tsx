@@ -12,6 +12,7 @@ export default function BotonSalir() {
 
     iniciarTransicion(async () => {
       await fetch("/api/auth/logout", { method: "POST" });
+      (await navigator.serviceWorker?.getRegistration())?.active?.postMessage("limpiar-paginas");
       router.push("/entrar");
       router.refresh();
     });
