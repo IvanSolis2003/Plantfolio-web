@@ -764,34 +764,44 @@ ninguna clase de fondo** — dejarlo transparente para heredar el degradado
 de `body`. `FondoHojas` se renderiza una sola vez, en `app/layout.tsx`,
 antes de `QueryProvider` — no hay que agregarlo en cada pantalla.
 
-## ⚠️ Trampa: `position: fixed` necesita un containing block para el marco de escritorio
+## ⚠️ Trampa: `transform` en un ancestro rompe el scroll-pinning de `position: fixed`
 
 La app es mobile-first; en pantallas grandes el contenido se estiraba a lo
-ancho de la ventana. Fix en `app/layout.tsx`: un solo `<div className="relative
-mx-auto max-w-md transform md:min-h-dvh md:shadow-2xl">` envuelve
-`{children}` + `BarraInferior`, sin tocar ninguna de las 17 pantallas —
-mismo diseño mobile, centrado y acotado en desktop.
+ancho de la ventana. `app/layout.tsx` envuelve `{children}` en un
+`<div className="relative mx-auto max-w-md md:min-h-dvh md:shadow-2xl">`
+— mismo diseño mobile, centrado y acotado en desktop, sin tocar ninguna de
+las 17 pantallas.
 
-**La parte no obvia:** `BarraInferior` usa `fixed bottom-0 left-0 right-0`,
-que por spec de CSS se posiciona contra el *containing block* más cercano
-con `transform`/`filter`/`perspective`/`will-change` distinto de `none` — si
-no hay ninguno, ese containing block es el viewport completo, así que la
-barra se pegaría a los bordes del navegador aunque el contenido esté
-centrado en una columna angosta. La clase `transform` de Tailwind (sin
-ningún valor de traslación/rotación real) alcanza para crear ese containing
-block: el spec dice que cualquier valor de `transform` que no sea la
-palabra clave `none` cuenta, incluida una transformación identidad. Se
-verificó en el CSS compilado que `--tw-translate-x`/`--tw-scale-x`/etc.
-tienen defaults (`0`/`1`) en el layer base, así que `.transform` resuelve a
-un valor real, no a `none` por variables sin definir.
+**Primer intento (revertido, dejó un bug real en producción):** para que
+`BarraInferior` (`fixed bottom-0 left-0 right-0`) quedara acotada al ancho
+del marco en vez de pegarse a los bordes del navegador, se le agregó
+`transform` al `div` contenedor — por spec de CSS, un ancestro con
+`transform` distinto de `none` se vuelve el *containing block* de sus
+descendientes `fixed`. Esto sí acotó el ancho, pero con un efecto
+secundario que no se había considerado: **un descendiente `fixed` cuyo
+containing block ya no es el viewport deja de quedarse pegado a la ventana
+durante el scroll** — pasa a comportarse como `position: absolute` respecto
+a ese ancestro, desplazándose con el contenido. Resultado real: apenas
+había scroll en cualquier pantalla (desktop y mobile por igual), la barra
+de navegación desaparecía de la vista — sin forma de cambiar de sección ni
+volver atrás. Lo detectó Iván mirando la app ("no tenemos botones para
+volver o cambiar de menús").
 
-**Si se necesita otro elemento `fixed` en el futuro** (otro overlay, otro
-banner), va a quedar contenido dentro de este mismo `max-w-md` automáticamente
-— no hace falta repetir el truco, alcanza con que esté en el árbol dentro de
-este `div`. Si algún día se necesita un `fixed` que sí cubra el viewport
-completo (como `FondoHojas`, que a propósito está *fuera* de este `div`,
-como hermano directo dentro de `<body>`), tiene que renderizarse fuera de
-este wrapper.
+**Fix real:** `BarraInferior` se centra sola, sin depender de ningún
+containing block especial en un ancestro — `left-1/2 -translate-x-1/2` +
+`w-full max-w-md` en vez de `left-0 right-0`. Sigue siendo
+`position: fixed` genuino respecto al viewport (se pega a la ventana
+durante el scroll, como siempre), solo que ahora su propio ancho está
+acotado y centrado. En mobile (viewport más angosto que `max-w-md`) el
+comportamiento es idéntico a como era antes de tocar el diseño de
+escritorio — `w-full` ya llega de borde a borde, `max-w-md` no aplica.
+
+**Lección para cualquier `fixed` nuevo que necesite acotarse a un ancho
+menor al viewport:** centrarlo con `left-1/2 -translate-x-1/2` +
+`w-full max-w-*` en el propio elemento, **no** agregar `transform` (ni
+`filter`/`perspective`/`will-change` con un valor real) a un ancestro — eso
+rompe el scroll-pinning de cualquier `fixed` que cuelgue de él, no solo del
+que se quiere acotar.
 
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
