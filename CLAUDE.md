@@ -71,6 +71,7 @@ lib/
 ├── clima.ts              ← alerta de riego según humedad/temperatura
 ├── geocoding.ts          ← reverse geocoding con Nominatim, coordenadas redondeadas
 ├── logros.ts             ← calcula logros al vuelo desde el álbum (sin tabla nueva)
+├── desafios.ts           ← desafíos por temporada meteorológica, mismo criterio que logros.ts
 ├── floraNativaChile.ts   ← lista curada de especies nativas, usada al identificar y en búsqueda manual
 ├── imagenCliente.ts      ← recodifica cualquier foto a JPEG (canvas) antes de subirla, evita el bug de HEIC
 ├── riego.ts              ← diasDesdeUltimoRiego/necesitaRiego, funciones puras usables en server y client
@@ -426,6 +427,33 @@ un Darwin Core Archive completo (eso requeriría un `meta.xml` y empaquetado
 zip), es un CSV con esos nombres de columna — suficiente para que un usuario
 lo suba a mano a iNaturalist o lo adjunte a un reporte a GBIF, no una
 integración automática con ninguna de las dos plataformas.
+
+## 🍂 Desafíos por temporada (hiperlocal, versión acotada)
+
+La idea original "hiperlocal Región del Maule" agrupaba 3 cosas: desafíos por
+temporada, rutas de avistamiento curadas en el mapa, y alianza con
+CONAF/Jardín Botánico (esto último no es código, es una relación
+institucional). Se acotó a **desafíos por temporada** porque reutiliza datos
+que ya existen sin tocar el schema — las otras dos ideas quedan sin
+implementar.
+
+`lib/desafios.ts` calcula 3 retos según la temporada meteorológica actual
+(Verano = dic-ene-feb, Otoño = mar-abr-may, Invierno = jun-jul-ago,
+Primavera = sep-oct-nov — `inicioTemporada()` maneja el cruce de año para
+Verano: en enero/febrero la temporada empezó en diciembre del año anterior):
+
+1. Identificar 3 plantas esta temporada
+2. Encontrar una especie nativa de Chile esta temporada
+3. Encontrar una especie poco común/endémica/protegida/casi extinta esta
+   temporada
+
+Mismo patrón que `lib/logros.ts` (función pura, se recalcula al vuelo desde
+`CollectionEntry[]`, sin tabla ni cache) pero con `progreso`/`meta` en vez de
+solo `desbloqueado`, porque acá interesa mostrar avance parcial. Se muestran
+en Perfil, en una sección propia con barra de progreso justo antes de Logros.
+Como se recalculan siempre desde cero, un desafío completado en una temporada
+pasada no queda registrado — si se quiere un historial de desafíos
+completados habría que persistirlos, no está hecho.
 
 ## 🎓 Posicionamiento "gratis, sin ads" en la landing
 
