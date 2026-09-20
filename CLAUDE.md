@@ -56,7 +56,7 @@ app/
 ├── manifest.ts           ← manifest de PWA
 ├── registrar-sw.tsx      ← registra el service worker (solo producción)
 └── page.tsx              ← Inicio
-components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge, HeaderPublico
+components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge, HeaderPublico, VisorFoto
 lib/
 ├── prisma.ts             ← PrismaClient + adapter de Neon
 ├── sesion.ts             ← sesión en BD (crearSesion/cerrarSesion/obtenerUsuarioServidor/obtenerUsuarioId)
@@ -482,6 +482,7 @@ asumir que es un bug de código — puede ser solo cuestión de esperar.
 - Tailwind con las clases del sistema de diseño ya definido en `tailwind.config.js`, nunca CSS-in-JS ni MUI
 - Barra inferior de 5 tabs (`components/BarraInferior.tsx`) es la navegación — no agregar drawer lateral ni bottom sheet
 - Cámara/ubicación son APIs web nativas (`<input capture>`, `navigator.geolocation`), no librerías nuevas
+- Para ampliar una foto a pantalla completa usar `components/VisorFoto.tsx` (recibe `fotos`, `indice`, `alt`, `onCerrar`) en vez de armar un lightbox nuevo — ya lo usan `DetalleCliente.tsx` y `GaleriaFotos.tsx`
 
 ---
 
