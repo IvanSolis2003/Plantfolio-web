@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
-import { subirImagen } from "@/lib/cloudinary";
+import { subirImagen, eliminarImagen } from "@/lib/cloudinary";
 import { parsearBody, imagenSchema } from "@/lib/validar";
 
 export const maxDuration = 60;
@@ -16,6 +16,50 @@ const agregarFotoSchema = z.object({
 const eliminarFotoSchema = z.object({
   url: z.string({ error: "url requerida" }).min(1, "url requerida"),
 });
+
+type ResultadoBloqueo =
+  | { estado: "ok"; entrada: NonNullable<Awaited<ReturnType<typeof buscarConPlanta>>> }
+  | { estado: "conflicto" }
+  | { estado: "eliminada" };
+
+function buscarConPlanta(id: string) {
+  return prisma.collectionEntry.findUnique({ where: { id }, include: { plant: true } });
+}
+
+async function actualizarConBloqueo(
+  id: string,
+  version: number,
+  data: { photos: string[]; photoDates: Date[] }
+): Promise<ResultadoBloqueo> {
+  const { count } = await prisma.collectionEntry.updateMany({
+    where: { id, version },
+    data: { ...data, version: { increment: 1 } },
+  });
+
+  if (count === 0) {
+    return { estado: "conflicto" };
+  }
+
+  const entrada = await buscarConPlanta(id);
+  if (!entrada) {
+    return { estado: "eliminada" };
+  }
+
+  return { estado: "ok", entrada };
+}
+
+function respuestaSegunResultado(resultado: ResultadoBloqueo) {
+  if (resultado.estado === "conflicto") {
+    return NextResponse.json(
+      { success: false, error: "Esta entrada se actualizó en otra pestaña, recargá e intentá de nuevo" },
+      { status: 409 }
+    );
+  }
+  if (resultado.estado === "eliminada") {
+    return NextResponse.json({ success: false, error: "Esta entrada ya no existe" }, { status: 404 });
+  }
+  return NextResponse.json({ success: true, data: resultado.entrada });
+}
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const usuario = await obtenerUsuarioServidor();
@@ -50,28 +94,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ success: false, error: "Error al subir la foto" }, { status: 500 });
   }
 
-  const { count } = await prisma.collectionEntry.updateMany({
-    where: { id, version: entrada.version },
-    data: {
-      photos: [...entrada.photos, url],
-      photoDates: [...entrada.photoDates, new Date()],
-      version: { increment: 1 },
-    },
+  const resultado = await actualizarConBloqueo(id, entrada.version, {
+    photos: [...entrada.photos, url],
+    photoDates: [...entrada.photoDates, new Date()],
   });
 
-  if (count === 0) {
-    return NextResponse.json(
-      { success: false, error: "Esta entrada se actualizó en otra pestaña, recargá e intentá de nuevo" },
-      { status: 409 }
-    );
+  if (resultado.estado !== "ok") {
+    await eliminarImagen(url);
   }
 
-  const actualizada = await prisma.collectionEntry.findUniqueOrThrow({
-    where: { id },
-    include: { plant: true },
-  });
-
-  return NextResponse.json({ success: true, data: actualizada });
+  return respuestaSegunResultado(resultado);
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -104,26 +136,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ success: false, error: "Esa foto ya no existe" }, { status: 404 });
   }
 
-  const { count } = await prisma.collectionEntry.updateMany({
-    where: { id, version: entrada.version },
-    data: {
-      photos: entrada.photos.filter((_, i) => i !== indice),
-      photoDates: entrada.photoDates.filter((_, i) => i !== indice),
-      version: { increment: 1 },
-    },
+  const resultado = await actualizarConBloqueo(id, entrada.version, {
+    photos: entrada.photos.filter((_, i) => i !== indice),
+    photoDates: entrada.photoDates.filter((_, i) => i !== indice),
   });
 
-  if (count === 0) {
-    return NextResponse.json(
-      { success: false, error: "Esta entrada se actualizó en otra pestaña, recargá e intentá de nuevo" },
-      { status: 409 }
-    );
-  }
-
-  const actualizada = await prisma.collectionEntry.findUniqueOrThrow({
-    where: { id },
-    include: { plant: true },
-  });
-
-  return NextResponse.json({ success: true, data: actualizada });
+  return respuestaSegunResultado(resultado);
 }

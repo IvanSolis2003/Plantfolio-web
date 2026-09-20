@@ -16,3 +16,10 @@ export async function subirImagen(base64: string): Promise<string> {
 
   return resultado.secure_url;
 }
+
+export async function eliminarImagen(url: string): Promise<void> {
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
+  if (!match) return;
+
+  await cloudinary.uploader.destroy(match[1]).catch(() => {});
+}
