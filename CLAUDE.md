@@ -764,6 +764,35 @@ ninguna clase de fondo** — dejarlo transparente para heredar el degradado
 de `body`. `FondoHojas` se renderiza una sola vez, en `app/layout.tsx`,
 antes de `QueryProvider` — no hay que agregarlo en cada pantalla.
 
+## ⚠️ Trampa: `position: fixed` necesita un containing block para el marco de escritorio
+
+La app es mobile-first; en pantallas grandes el contenido se estiraba a lo
+ancho de la ventana. Fix en `app/layout.tsx`: un solo `<div className="relative
+mx-auto max-w-md transform md:min-h-dvh md:shadow-2xl">` envuelve
+`{children}` + `BarraInferior`, sin tocar ninguna de las 17 pantallas —
+mismo diseño mobile, centrado y acotado en desktop.
+
+**La parte no obvia:** `BarraInferior` usa `fixed bottom-0 left-0 right-0`,
+que por spec de CSS se posiciona contra el *containing block* más cercano
+con `transform`/`filter`/`perspective`/`will-change` distinto de `none` — si
+no hay ninguno, ese containing block es el viewport completo, así que la
+barra se pegaría a los bordes del navegador aunque el contenido esté
+centrado en una columna angosta. La clase `transform` de Tailwind (sin
+ningún valor de traslación/rotación real) alcanza para crear ese containing
+block: el spec dice que cualquier valor de `transform` que no sea la
+palabra clave `none` cuenta, incluida una transformación identidad. Se
+verificó en el CSS compilado que `--tw-translate-x`/`--tw-scale-x`/etc.
+tienen defaults (`0`/`1`) en el layer base, así que `.transform` resuelve a
+un valor real, no a `none` por variables sin definir.
+
+**Si se necesita otro elemento `fixed` en el futuro** (otro overlay, otro
+banner), va a quedar contenido dentro de este mismo `max-w-md` automáticamente
+— no hace falta repetir el truco, alcanza con que esté en el árbol dentro de
+este `div`. Si algún día se necesita un `fixed` que sí cubra el viewport
+completo (como `FondoHojas`, que a propósito está *fuera* de este `div`,
+como hermano directo dentro de `<body>`), tiene que renderizarse fuera de
+este wrapper.
+
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
 PlantNet y Cloudinary respondieron al toque, pero **OpenWeather tarda un par
