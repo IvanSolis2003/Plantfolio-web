@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import type { ZodSchema } from "zod";
+
+const MAX_CARACTERES_IMAGEN = 8_000_000;
+
+export const imagenSchema = z
+  .string({ error: "Imagen requerida" })
+  .min(1, "Imagen requerida")
+  .max(MAX_CARACTERES_IMAGEN, "La imagen es demasiado grande");
 
 export async function parsearBody<T>(
   req: Request,

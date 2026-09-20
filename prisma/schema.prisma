@@ -81,6 +81,7 @@ model CollectionEntry {
   privado      Boolean   @default(false)
   identifiedAt DateTime  @default(now())
   lastWatered  DateTime?
+  version      Int       @default(0)
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   plant Plant @relation(fields: [plantId], references: [id])

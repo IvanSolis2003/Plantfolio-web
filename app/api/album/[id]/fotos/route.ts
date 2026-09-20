@@ -3,14 +3,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { subirImagen } from "@/lib/cloudinary";
-import { parsearBody } from "@/lib/validar";
+import { parsearBody, imagenSchema } from "@/lib/validar";
 
 export const maxDuration = 60;
 
 const MAX_FOTOS = 3;
 
 const agregarFotoSchema = z.object({
-  image: z.string({ error: "Imagen requerida" }).min(1, "Imagen requerida"),
+  image: imagenSchema,
 });
 
 const eliminarFotoSchema = z.object({
@@ -50,12 +50,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ success: false, error: "Error al subir la foto" }, { status: 500 });
   }
 
-  const actualizada = await prisma.collectionEntry.update({
-    where: { id },
+  const { count } = await prisma.collectionEntry.updateMany({
+    where: { id, version: entrada.version },
     data: {
       photos: [...entrada.photos, url],
       photoDates: [...entrada.photoDates, new Date()],
+      version: { increment: 1 },
     },
+  });
+
+  if (count === 0) {
+    return NextResponse.json(
+      { success: false, error: "Esta entrada se actualizó en otra pestaña, recargá e intentá de nuevo" },
+      { status: 409 }
+    );
+  }
+
+  const actualizada = await prisma.collectionEntry.findUniqueOrThrow({
+    where: { id },
     include: { plant: true },
   });
 
@@ -87,12 +99,29 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   const { url } = validacionDelete.data;
   const indice = entrada.photos.indexOf(url);
-  const actualizada = await prisma.collectionEntry.update({
-    where: { id },
+
+  if (indice === -1) {
+    return NextResponse.json({ success: false, error: "Esa foto ya no existe" }, { status: 404 });
+  }
+
+  const { count } = await prisma.collectionEntry.updateMany({
+    where: { id, version: entrada.version },
     data: {
       photos: entrada.photos.filter((_, i) => i !== indice),
       photoDates: entrada.photoDates.filter((_, i) => i !== indice),
+      version: { increment: 1 },
     },
+  });
+
+  if (count === 0) {
+    return NextResponse.json(
+      { success: false, error: "Esta entrada se actualizó en otra pestaña, recargá e intentá de nuevo" },
+      { status: 409 }
+    );
+  }
+
+  const actualizada = await prisma.collectionEntry.findUniqueOrThrow({
+    where: { id },
     include: { plant: true },
   });
 

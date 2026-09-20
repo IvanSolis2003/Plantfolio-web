@@ -3,12 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioId } from "@/lib/sesion";
 import { subirImagen } from "@/lib/cloudinary";
-import { parsearBody } from "@/lib/validar";
+import { parsearBody, imagenSchema } from "@/lib/validar";
 
 export const maxDuration = 60;
 
 const avatarSchema = z.object({
-  image: z.string({ error: "Imagen requerida" }).min(1, "Imagen requerida"),
+  image: imagenSchema,
 });
 
 export async function POST(req: NextRequest) {
