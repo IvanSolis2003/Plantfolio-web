@@ -41,7 +41,7 @@ const TEXTOS: Record<Desenlace, { titulo: string; texto: string }> = {
   },
   vencido: {
     titulo: "El enlace venció",
-    texto: "Los enlaces duran 24 horas. Registrate de nuevo con el mismo correo para recibir uno nuevo.",
+    texto: "Los enlaces duran 24 horas. Andá a Entrar e intentá iniciar sesión con tu correo — ahí vas a poder pedir uno nuevo.",
   },
   invalido: {
     titulo: "Este enlace no sirve",

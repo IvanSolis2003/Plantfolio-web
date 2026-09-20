@@ -11,11 +11,16 @@ export default function FormularioEntrar() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sinVerificar, setSinVerificar] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+  const [mensajeReenvio, setMensajeReenvio] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSinVerificar(false);
+    setMensajeReenvio(null);
 
     if (!email.trim() || !password.trim()) {
       setError("Completa todos los campos.");
@@ -29,8 +34,11 @@ export default function FormularioEntrar() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      const data: ApiResponse<AuthTokens> = await respuesta.json();
-      if (!data.success) throw new Error(data.error ?? "Credenciales inválidas");
+      const data: ApiResponse<AuthTokens> & { estado?: string } = await respuesta.json();
+      if (!data.success) {
+        if (data.estado === "sin-verificar") setSinVerificar(true);
+        throw new Error(data.error ?? "Credenciales inválidas");
+      }
 
       router.push("/");
       router.refresh();
@@ -38,6 +46,24 @@ export default function FormularioEntrar() {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleReenviarVerificacion() {
+    setReenviando(true);
+    setMensajeReenvio(null);
+    try {
+      const respuesta = await fetch("/api/auth/reenviar-verificacion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data: ApiResponse<{ mensaje: string }> = await respuesta.json();
+      setMensajeReenvio(data.data?.mensaje ?? data.error ?? "Listo.");
+    } catch {
+      setMensajeReenvio("No pudimos reenviar el correo, intentá de nuevo.");
+    } finally {
+      setReenviando(false);
     }
   }
 
@@ -78,6 +104,19 @@ export default function FormularioEntrar() {
           </div>
 
           {error && <p className="text-sm font-medium text-danger">{error}</p>}
+
+          {sinVerificar && !mensajeReenvio && (
+            <button
+              type="button"
+              onClick={handleReenviarVerificacion}
+              disabled={reenviando}
+              className="text-left text-sm font-semibold text-primary underline disabled:opacity-60"
+            >
+              {reenviando ? "Enviando..." : "¿Venció el enlace? Reenviar correo de confirmación"}
+            </button>
+          )}
+
+          {mensajeReenvio && <p className="text-sm font-medium text-primary">{mensajeReenvio}</p>}
 
           <button
             type="submit"

@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
 
   const estado = estadoDe(usuario);
   if (estado !== "lista") {
-    return NextResponse.json({ success: false, error: MENSAJE_POR_ESTADO[estado] }, { status: 403 });
+    return NextResponse.json(
+      { success: false, error: MENSAJE_POR_ESTADO[estado], estado },
+      { status: 403 }
+    );
   }
 
   await crearSesion(usuario.id);
