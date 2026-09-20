@@ -154,6 +154,7 @@ model Plant {
   careInstructions String?
   diseases         String?
   nativeToChile    Boolean  @default(false)
+  wateringFrequencyDays Int @default(7)
   entries          CollectionEntry[]
 }
 
@@ -168,6 +169,7 @@ model CollectionEntry {
   ubicacionAprox String?
   privado      Boolean  @default(false)
   identifiedAt DateTime @default(now())
+  lastWatered  DateTime?
   user         User     @relation(fields: [userId], references: [id])
   plant        Plant    @relation(fields: [plantId], references: [id])
 }
@@ -201,7 +203,7 @@ correr el seed de nuevo no duplica nada).
 | POST | `/api/identify` | Envía foto a PlantNet + Cloudinary + upsert de Plant | ✅ |
 | GET/POST | `/api/album` | Álbum del usuario (POST reusa la foto que ya subió identify, no resube) | ✅ |
 | DELETE | `/api/album/:id` | Eliminar entrada (chequea ownership) | ✅ |
-| PATCH | `/api/album/:id` | `{ privado?, notes? }` — actualiza lo que venga (chequea ownership) | ✅ |
+| PATCH | `/api/album/:id` | `{ privado?, notes?, regada? }` — actualiza lo que venga (chequea ownership); `regada: true` fija `lastWatered` a la fecha del servidor | ✅ |
 | POST | `/api/album/:id/fotos` | Agrega una foto (máx 3, sube a Cloudinary) | ✅ |
 | DELETE | `/api/album/:id/fotos` | Saca una foto por URL (mín 1) | ✅ |
 | GET | `/api/album/mapa` | Entradas con GPS, para el mapa Leaflet | ✅ |
@@ -365,6 +367,33 @@ para poder corregir o ampliar el texto sin tener que borrar la fila a mano;
 correr `npx prisma db seed` después de editar `FLORA_CHILENA` para que los
 cambios lleguen a producción (misma base que dev, ver sección de Prisma).
 
+## 💧 Recordatorios de riego reales
+
+`AlertaRiego` (en Inicio) solo mostraba el clima general del día — no había
+relación planta↔frecuencia↔última vez que se regó. Se agregó:
+
+- `Plant.wateringFrequencyDays` (`Int`, default `7`) — cada cuántos días
+  necesita agua esa especie. Poblado con valores reales para las 18 especies
+  sembradas (desde 2 días para `Gunnera tinctoria`/Nalca, que necesita suelo
+  pantanoso, hasta 21 días para especies muy tolerantes a la sequía como
+  `Puya chilensis` o `Prosopis chilensis`); cualquier especie nueva
+  identificada por cámara queda con el default de 7 días hasta que se cure a
+  mano en `seed.ts`, mismo criterio que `careInstructions`/`diseases`.
+- `CollectionEntry.lastWatered` (`DateTime?`, empieza en `null`) — se fija a
+  `new Date()` del **servidor** (nunca una fecha que mande el cliente) vía
+  `PATCH /api/album/:id` con `{ regada: true }`.
+- `lib/riego.ts` — `diasDesdeUltimoRiego(entrada)` cuenta desde `lastWatered`,
+  o desde `identifiedAt` si nunca se regó; `necesitaRiego(entrada)` compara
+  ese número contra `plant.wateringFrequencyDays`. Es matemática de fechas
+  pura (sin `"use client"`), así que se puede usar tanto en server components
+  (`app/page.tsx`) como en client components (`DetalleCliente.tsx`).
+- `app/PlantasPorRegar.tsx` en Inicio lista las plantas que necesitan riego
+  hoy con un botón rápido "Regué"; `DetalleCliente.tsx` muestra el detalle
+  ("Regada hace N días · cada M días") con su propio botón "Regué hoy".
+
+No se integró con `AlertaRiego`/clima — son dos señales separadas a propósito
+(una es por especie y fecha, la otra es un tip general del día).
+
 ## 📴 Modo offline: ver el álbum sin conexión
 
 Identificar una planta requiere conexión sí o sí (llama a PlantNet y a
@@ -510,6 +539,7 @@ asumir que es un bug de código — puede ser solo cuestión de esperar.
 - [x] Mapa interactivo con Leaflet + OpenStreetMap, `GET /api/album/mapa`
 - [x] Sistema de logros (7 logros, calculados al vuelo desde el álbum — `lib/logros.ts`)
 - [x] Alertas de riego con OpenWeather — `GET /api/clima`, componente `AlertaRiego` en Inicio
+- [x] Recordatorios de riego reales por especie (`wateringFrequencyDays` + `lastWatered`, `lib/riego.ts`, `PlantasPorRegar.tsx`)
 - [x] Seed de flora nativa chilena — 18 especies reales en `prisma/seed.ts`
 - [ ] Notificaciones — evaluar Web Push como reemplazo de Expo Notifications (sin arrancar, es la única pieza que queda)
 
