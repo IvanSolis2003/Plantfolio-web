@@ -28,10 +28,7 @@ export async function POST(req: NextRequest) {
     usuario.tokenResetExpira.getTime() - Date.now() > 23 * 60 * 60 * 1000;
 
   if (tokenReciente) {
-    return NextResponse.json({
-      success: true,
-      data: { mensaje: "Ya te mandamos un correo hace instantes. Revisá tu bandeja (y la carpeta de spam)." },
-    });
+    return NextResponse.json({ success: true, data: { mensaje: MENSAJE_GENERICO } });
   }
 
   const token = nuevoToken();
