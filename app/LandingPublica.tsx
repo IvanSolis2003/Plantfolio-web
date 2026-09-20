@@ -82,6 +82,14 @@ export default async function LandingPublica() {
           <span className="text-sm font-semibold text-primary">Ver galería pública completa</span>
         </Link>
 
+        <Link
+          href="/catalogo"
+          className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-accent bg-surface p-3 text-center"
+        >
+          <span className="text-xl">🇨🇱</span>
+          <span className="text-sm font-semibold text-primary">Catálogo de flora chilena</span>
+        </Link>
+
         <CreditoIasmtech />
       </div>
     </div>

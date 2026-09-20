@@ -85,12 +85,12 @@ export default async function HomePage() {
         <span className="text-sm font-semibold text-primary">Ver galería pública</span>
       </Link>
 
-      <div className="mt-4 rounded-2xl bg-accent/30 p-4">
+      <Link href="/catalogo" className="mt-4 block rounded-2xl bg-accent/30 p-4">
         <p className="mb-1 font-bold text-primary">🇨🇱 Flora Chilena</p>
         <p className="text-sm text-text">
-          Chile posee una de las floras más diversas del mundo. ¡Ayuda a documentarla!
+          Chile posee una de las floras más diversas del mundo. Explorá el catálogo de especies.
         </p>
-      </div>
+      </Link>
     </div>
   );
 }
