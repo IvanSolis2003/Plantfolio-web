@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import RarityBadge from "@/components/RarityBadge";
 import HeaderPublico from "@/components/HeaderPublico";
 import CreditoIasmtech from "@/components/CreditoIasmtech";
+import GaleriaFotos from "./GaleriaFotos";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 
 export const dynamic = "force-dynamic";
@@ -38,18 +39,7 @@ export default async function DetallePublicoPage({
           ← Volver a la galería
         </Link>
 
-        <div className="mb-4 grid grid-cols-3 gap-2">
-          {entrada.photos.map((url) => (
-            <Image
-              key={url}
-              src={url}
-              alt={entrada.plant.commonName}
-              width={150}
-              height={150}
-              className="h-24 w-full rounded-xl object-cover"
-            />
-          ))}
-        </div>
+        <GaleriaFotos fotos={entrada.photos} alt={entrada.plant.commonName} />
 
         <p className="text-xl font-bold text-primary">{entrada.plant.commonName}</p>
         <p className="mb-2 text-sm italic text-muted">{entrada.plant.scientificName}</p>

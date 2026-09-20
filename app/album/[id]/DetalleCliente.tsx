@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
+import VisorFoto from "@/components/VisorFoto";
 import { archivoAJpegBase64 } from "@/lib/imagenCliente";
 import type { ApiResponse, CollectionEntry } from "@/types";
 
@@ -17,6 +18,7 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
   const [notaGuardada, setNotaGuardada] = useState(false);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [eliminandoFoto, setEliminandoFoto] = useState<string | null>(null);
+  const [fotoAbierta, setFotoAbierta] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -94,15 +96,17 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
       </Link>
 
       <div className="mb-4 grid grid-cols-3 gap-2">
-        {entrada.photos.map((url) => (
+        {entrada.photos.map((url, indice) => (
           <div key={url} className="relative">
-            <Image
-              src={url}
-              alt={entrada.plant.commonName}
-              width={150}
-              height={150}
-              className="h-24 w-full rounded-xl object-cover"
-            />
+            <button onClick={() => setFotoAbierta(indice)} className="block w-full">
+              <Image
+                src={url}
+                alt={entrada.plant.commonName}
+                width={150}
+                height={150}
+                className="h-24 w-full rounded-xl object-cover"
+              />
+            </button>
             <button
               onClick={() => handleEliminarFoto(url)}
               disabled={eliminandoFoto === url || entrada.photos.length <= 1}
@@ -178,6 +182,15 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
       >
         {notaGuardada ? "Guardado ✓" : guardandoNota ? "Guardando..." : "Guardar nota"}
       </button>
+
+      {fotoAbierta !== null && (
+        <VisorFoto
+          fotos={entrada.photos}
+          indice={fotoAbierta}
+          alt={entrada.plant.commonName}
+          onCerrar={() => setFotoAbierta(null)}
+        />
+      )}
     </div>
   );
 }
