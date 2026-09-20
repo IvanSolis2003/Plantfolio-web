@@ -50,8 +50,12 @@ app/
 ├── verificar/            ← resuelve el token de verificación de email
 ├── galeria/              ← pública, sin login, álbum de todos salvo lo marcado privado
 │   └── [id]/             ← ficha pública de una planta: ubicación siempre visible, perfil solo si compartirPerfil
+├── catalogo/             ← pública, buscador de las especies del catálogo (CatalogoCliente.tsx, GET /api/plants)
+├── api/plants/           ← GET público, catálogo completo (consumido por /catalogo)
+├── api/plantas/manual/   ← POST, busca o crea una Plant por nombre escrito a mano
 ├── LandingPublica.tsx    ← lo que ve un visitante sin sesión en / (hero + preview de galería)
 ├── AlertaRiego.tsx       ← cliente, pide geolocalización best-effort, se muestra en Inicio
+├── PlantasPorRegar.tsx   ← cliente, lista de plantas que necesitan riego hoy, se muestra en Inicio
 ├── layout.tsx           ← resuelve sesión server-side, PWA, React Query
 ├── manifest.ts           ← manifest de PWA
 ├── registrar-sw.tsx      ← registra el service worker (solo producción)
@@ -66,7 +70,11 @@ lib/
 ├── cloudinary.ts         ← sube foto, devuelve solo la URL
 ├── clima.ts              ← alerta de riego según humedad/temperatura
 ├── geocoding.ts          ← reverse geocoding con Nominatim, coordenadas redondeadas
-└── logros.ts             ← calcula logros al vuelo desde el álbum (sin tabla nueva)
+├── logros.ts             ← calcula logros al vuelo desde el álbum (sin tabla nueva)
+├── floraNativaChile.ts   ← lista curada de especies nativas, usada al identificar y en búsqueda manual
+├── imagenCliente.ts      ← recodifica cualquier foto a JPEG (canvas) antes de subirla, evita el bug de HEIC
+├── riego.ts              ← diasDesdeUltimoRiego/necesitaRiego, funciones puras usables en server y client
+└── validar.ts            ← parsearBody(req, schema) con Zod, usado en todos los route handlers con body
 store/authStore.ts        ← Zustand, solo el usuario (no el token)
 prisma/
 ├── schema.prisma          ← modelos de datos
@@ -213,7 +221,7 @@ correr el seed de nuevo no duplica nada).
 | POST | `/api/perfil/privacidad` | Toggle de `coleccionPrivada` | ✅ |
 | PATCH | `/api/perfil` | `{ bio?, ubicacionTexto?, compartirPerfil? }` | ✅ |
 | POST | `/api/perfil/avatar` | Sube avatar a Cloudinary | ✅ |
-| GET | `/api/plants` | Catálogo completo con filtros (no hay pantalla que lo use todavía) | ⏳ |
+| GET | `/api/plants` | Catálogo completo, público (sin auth) — usado por `/catalogo` | ✅ |
 | POST | `/api/plantas/manual` | Busca por nombre (común o científico) y crea la planta si no existe | ✅ |
 
 Todos se implementan como Route Handlers con Prisma directo — **no existe
@@ -394,6 +402,16 @@ relación planta↔frecuencia↔última vez que se regó. Se agregó:
 
 No se integró con `AlertaRiego`/clima — son dos señales separadas a propósito
 (una es por especie y fecha, la otra es un tip general del día).
+
+## 🔎 Catálogo de especies
+
+`GET /api/plants` (público, sin auth) y la pantalla `/catalogo` (también
+pública) exponen las especies del catálogo con buscador por nombre común o
+científico. Existían 18 especies sembradas que nadie podía explorar salvo
+identificándolas una por una con la cámara. `CatalogoCliente.tsx` hace
+`fetch` una vez al montar y filtra en memoria (18 registros, no vale la pena
+pegarle a la API por cada tecleo). Enlazada desde la tarjeta "Flora Chilena"
+de Inicio y desde la landing pública.
 
 ## 📅 Historial/timeline por planta
 
