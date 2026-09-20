@@ -15,7 +15,7 @@ export default function BarraInferior() {
   const ruta = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-[60px] items-center justify-around border-t border-accent bg-surface pb-2">
+    <nav className="fixed bottom-0 left-1/2 z-40 flex h-[60px] w-full max-w-md -translate-x-1/2 items-center justify-around border-t border-accent bg-surface pb-2">
       {TABS.map((tab) => {
         const activo = tab.href === "/" ? ruta === "/" : ruta.startsWith(tab.href);
 
