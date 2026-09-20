@@ -23,6 +23,8 @@ model User {
   emailVerificado  DateTime?
   tokenVerificacion String?  @unique
   tokenExpira      DateTime?
+  tokenReset       String?   @unique
+  tokenResetExpira DateTime?
   aprobado         Boolean   @default(false)
   esAdmin          Boolean   @default(false)
   coleccionPrivada Boolean   @default(false)

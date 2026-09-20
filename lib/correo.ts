@@ -35,6 +35,32 @@ export function plantillaVerificacion(enlace: string): string {
 </html>`;
 }
 
+export function plantillaRecuperacion(enlace: string): string {
+  return `<!doctype html>
+<html lang="es">
+<body style="margin:0;padding:32px 16px;background:#F8FAF9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#FFFFFF;border-radius:14px;padding:32px;">
+    <tr><td>
+      <h1 style="margin:0 0 8px;font-size:24px;color:${TEXTO};">🌿 Recuperar contraseña</h1>
+      <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:${MUTED};">
+        Pediste restablecer tu contraseña de Plantfolio. Si no fuiste vos, ignora este correo.
+      </p>
+      <a href="${enlace}" style="display:inline-block;background:${VERDE};color:#FFFFFF;text-decoration:none;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;">
+        Elegir nueva contraseña
+      </a>
+      <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:${MUTED};">
+        Si el botón no funciona, copia esta dirección en tu navegador:<br>
+        <span style="color:${TEXTO};word-break:break-all;">${enlace}</span>
+      </p>
+      <p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:${MUTED};">
+        El enlace vence en 24 horas y solo se puede usar una vez.
+      </p>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 export function plantillaAprobacion(): string {
   return `<!doctype html>
 <html lang="es">
