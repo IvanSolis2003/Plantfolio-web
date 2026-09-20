@@ -34,6 +34,7 @@ export default async function DetalleEntradaPage({
         latitude: entrada.latitude ?? undefined,
         longitude: entrada.longitude ?? undefined,
         ubicacionAprox: entrada.ubicacionAprox ?? undefined,
+        lastWatered: entrada.lastWatered?.toISOString(),
         plant: {
           ...entrada.plant,
           family: entrada.plant.family ?? undefined,

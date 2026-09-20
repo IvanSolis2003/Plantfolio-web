@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
+import { necesitaRiego } from "@/lib/riego";
 import AlertaRiego from "./AlertaRiego";
 import LandingPublica from "./LandingPublica";
+import PlantasPorRegar from "./PlantasPorRegar";
 
 export const dynamic = "force-dynamic";
 
@@ -9,12 +12,38 @@ export default async function HomePage() {
   const usuario = await obtenerUsuarioServidor();
   if (!usuario) return <LandingPublica />;
 
+  const entradas = await prisma.collectionEntry.findMany({
+    where: { userId: usuario.id },
+    include: { plant: true },
+  });
+
+  const porRegar = entradas
+    .map((entrada) => ({
+      ...entrada,
+      identifiedAt: entrada.identifiedAt.toISOString(),
+      notes: entrada.notes ?? undefined,
+      latitude: entrada.latitude ?? undefined,
+      longitude: entrada.longitude ?? undefined,
+      ubicacionAprox: entrada.ubicacionAprox ?? undefined,
+      lastWatered: entrada.lastWatered?.toISOString(),
+      plant: {
+        ...entrada.plant,
+        family: entrada.plant.family ?? undefined,
+        description: entrada.plant.description ?? undefined,
+        careInstructions: entrada.plant.careInstructions ?? undefined,
+        diseases: entrada.plant.diseases ?? undefined,
+      },
+    }))
+    .filter(necesitaRiego);
+
   return (
     <div className="min-h-dvh bg-background px-5 pt-12 pb-6">
       <div className="mb-6">
         <p className="text-base text-muted">Bienvenido,</p>
         <p className="text-2xl font-bold text-primary">{usuario.name} 🌿</p>
       </div>
+
+      <PlantasPorRegar entradas={porRegar} />
 
       <AlertaRiego />
 

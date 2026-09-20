@@ -15,6 +15,7 @@ const FLORA_CHILENA = [
       "Prefiere sombra parcial y suelo húmedo pero bien drenado; en cultivo necesita un tutor para trepar y protección del viento fuerte.",
     diseases:
       "Susceptible a pudrición de raíz por exceso de riego y a cochinillas en los tallos jóvenes.",
+    wateringFrequencyDays: 5,
   },
   {
     scientificName: "Araucaria araucana",
@@ -26,6 +27,7 @@ const FLORA_CHILENA = [
       "Necesita pleno sol y suelos volcánicos bien drenados; es de crecimiento extremadamente lento y muy resistente al frío, no conviene trasplantarla una vez adulta.",
     diseases:
       "Puede verse afectada por hongos que causan muerte de ramas (dieback); conviene evitar heridas en la corteza.",
+    wateringFrequencyDays: 14,
   },
   {
     scientificName: "Fitzroya cupressoides",
@@ -37,6 +39,7 @@ const FLORA_CHILENA = [
       "Prefiere climas húmedos y fríos con suelos ácidos bien drenados; crece muy lento y está protegido por ley, no se debe cortar ni extraer de su hábitat natural.",
     diseases:
       "Poco susceptible a plagas en estado silvestre; en cultivo puede sufrir pudrición de raíz si el suelo no drena bien.",
+    wateringFrequencyDays: 7,
   },
   {
     scientificName: "Jubaea chilensis",
@@ -48,6 +51,7 @@ const FLORA_CHILENA = [
       "Necesita pleno sol y tolera bien la sequía una vez establecida; riego moderado durante los primeros años de crecimiento.",
     diseases:
       "Puede ser atacada por insectos barrenadores que perforan el tronco; conviene revisar la corona periódicamente.",
+    wateringFrequencyDays: 10,
   },
   {
     scientificName: "Puya chilensis",
@@ -59,6 +63,7 @@ const FLORA_CHILENA = [
       "Pleno sol y suelo pobre y bien drenado; es muy resistente a la sequía y no requiere riego frecuente en cultivo.",
     diseases:
       "Rara vez presenta plagas; el exceso de humedad en la base puede pudrir la roseta.",
+    wateringFrequencyDays: 21,
   },
   {
     scientificName: "Crinodendron hookerianum",
@@ -70,6 +75,7 @@ const FLORA_CHILENA = [
       "Prefiere sombra parcial, suelo ácido y húmedo; no tolera bien la sequía prolongada ni el sol directo intenso.",
     diseases:
       "Sensible a pulgones y a manchas foliares por hongos en ambientes muy húmedos y poco ventilados.",
+    wateringFrequencyDays: 4,
   },
   {
     scientificName: "Nothofagus obliqua",
@@ -81,6 +87,7 @@ const FLORA_CHILENA = [
       "Requiere suelos profundos y húmedos con buen drenaje; crece mejor con luz plena a semisombra en climas templados.",
     diseases:
       "Puede verse afectado por pulgones y por hongos causantes de manchas foliares.",
+    wateringFrequencyDays: 6,
   },
   {
     scientificName: "Nothofagus dombeyi",
@@ -92,6 +99,7 @@ const FLORA_CHILENA = [
       "Prefiere suelos húmedos con buen drenaje; tolera la sombra cuando es joven pero necesita más luz al crecer.",
     diseases:
       "Susceptible a hongos defoliadores en temporadas muy lluviosas.",
+    wateringFrequencyDays: 6,
   },
   {
     scientificName: "Embothrium coccineum",
@@ -103,6 +111,7 @@ const FLORA_CHILENA = [
       "Sol pleno o semisombra, suelo húmedo y bien drenado; tolera suelos pobres pero no la sequía extrema.",
     diseases:
       "Puede presentar pulgones en brotes nuevos y manchas foliares por exceso de humedad.",
+    wateringFrequencyDays: 5,
   },
   {
     scientificName: "Aristotelia chilensis",
@@ -114,6 +123,7 @@ const FLORA_CHILENA = [
       "Muy resistente y de fácil cultivo; se adapta a sol o sombra parcial y a distintos tipos de suelo con buen drenaje.",
     diseases:
       "Ocasionalmente afectado por pulgones y por oídio en climas húmedos.",
+    wateringFrequencyDays: 7,
   },
   {
     scientificName: "Drimys winteri",
@@ -125,6 +135,7 @@ const FLORA_CHILENA = [
       "Prefiere suelos húmedos, ácidos y bien drenados, con sombra parcial en climas más secos.",
     diseases:
       "Sensible a cochinillas y a pudrición de raíz si el suelo se anega.",
+    wateringFrequencyDays: 5,
   },
   {
     scientificName: "Gunnera tinctoria",
@@ -136,6 +147,7 @@ const FLORA_CHILENA = [
       "Necesita suelo muy húmedo o pantanoso y sombra parcial; sus hojas grandes se dañan con heladas fuertes.",
     diseases:
       "Puede sufrir ataques de babosas y caracoles que perforan las hojas.",
+    wateringFrequencyDays: 2,
   },
   {
     scientificName: "Berberis microphylla",
@@ -147,6 +159,7 @@ const FLORA_CHILENA = [
       "Pleno sol, tolera suelos pobres y secos; es muy resistente al frío y al viento.",
     diseases:
       "Rara vez presenta plagas; el exceso de riego puede causar pudrición de raíz.",
+    wateringFrequencyDays: 14,
   },
   {
     scientificName: "Chusquea culeou",
@@ -158,6 +171,7 @@ const FLORA_CHILENA = [
       "Prefiere sombra parcial y suelos húmedos; se expande por rizomas, conviene contener sus raíces en jardines pequeños.",
     diseases:
       "Puede verse afectado por pulgones en las cañas jóvenes.",
+    wateringFrequencyDays: 6,
   },
   {
     scientificName: "Prosopis chilensis",
@@ -169,6 +183,7 @@ const FLORA_CHILENA = [
       "Pleno sol, muy tolerante a la sequía y a suelos salinos; riego mínimo una vez establecido.",
     diseases:
       "Susceptible a insectos barrenadores del tronco en climas cálidos.",
+    wateringFrequencyDays: 21,
   },
   {
     scientificName: "Beilschmiedia berteroana",
@@ -180,6 +195,7 @@ const FLORA_CHILENA = [
       "Necesita sombra y humedad constante, con suelos profundos y bien drenados; al ser una especie en peligro, no debe extraerse de su hábitat.",
     diseases:
       "Sensible a la pudrición de raíz por mal drenaje.",
+    wateringFrequencyDays: 4,
   },
   {
     scientificName: "Legrandia concinna",
@@ -191,6 +207,7 @@ const FLORA_CHILENA = [
       "Requiere humedad constante y sombra parcial; al quedar muy pocas poblaciones silvestres, no debe recolectarse en su hábitat.",
     diseases:
       "Poco documentado por lo escasa que es la especie; conviene evitar el encharcamiento del suelo.",
+    wateringFrequencyDays: 4,
   },
   {
     scientificName: "Eucryphia cordifolia",
@@ -202,6 +219,7 @@ const FLORA_CHILENA = [
       "Prefiere clima húmedo, suelo ácido y bien drenado, con sol pleno a semisombra.",
     diseases:
       "Puede presentar cochinillas y manchas foliares por hongos en temporadas muy lluviosas.",
+    wateringFrequencyDays: 6,
   },
 ];
 

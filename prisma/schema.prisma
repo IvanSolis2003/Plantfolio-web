@@ -52,15 +52,16 @@ model AuthSession {
 }
 
 model Plant {
-  id               String  @id @default(cuid())
-  commonName       String
-  scientificName   String  @unique
-  family           String?
-  description      String?
-  rarity           Rarity  @default(COMUN)
-  careInstructions String?
-  diseases         String?
-  nativeToChile    Boolean @default(false)
+  id                    String  @id @default(cuid())
+  commonName            String
+  scientificName        String  @unique
+  family                String?
+  description           String?
+  rarity                Rarity  @default(COMUN)
+  careInstructions      String?
+  diseases              String?
+  nativeToChile         Boolean @default(false)
+  wateringFrequencyDays Int     @default(7)
 
   entries CollectionEntry[]
 
@@ -68,7 +69,7 @@ model Plant {
 }
 
 model CollectionEntry {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
   plantId      String
   photos       String[]
@@ -76,8 +77,9 @@ model CollectionEntry {
   latitude     Float?
   longitude    Float?
   ubicacionAprox String?
-  privado      Boolean  @default(false)
-  identifiedAt DateTime @default(now())
+  privado      Boolean   @default(false)
+  identifiedAt DateTime  @default(now())
+  lastWatered  DateTime?
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   plant Plant @relation(fields: [plantId], references: [id])

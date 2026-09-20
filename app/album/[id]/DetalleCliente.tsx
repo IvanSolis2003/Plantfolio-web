@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
 import VisorFoto from "@/components/VisorFoto";
 import { archivoAJpegBase64 } from "@/lib/imagenCliente";
+import { diasDesdeUltimoRiego, necesitaRiego } from "@/lib/riego";
 import type { ApiResponse, CollectionEntry } from "@/types";
 
 const MAX_FOTOS = 3;
@@ -19,8 +20,29 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [eliminandoFoto, setEliminandoFoto] = useState<string | null>(null);
   const [fotoAbierta, setFotoAbierta] = useState<number | null>(null);
+  const [regando, setRegando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  async function handleRegar() {
+    setRegando(true);
+    setError(null);
+    try {
+      const respuesta = await fetch(`/api/album/${entrada.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regada: true }),
+      });
+      const data: ApiResponse<CollectionEntry> = await respuesta.json();
+      if (!data.success || !data.data) throw new Error(data.error ?? "Error al registrar el riego");
+      setEntrada(data.data);
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al registrar el riego");
+    } finally {
+      setRegando(false);
+    }
+  }
 
   async function handleGuardarNota() {
     setGuardandoNota(true);
@@ -145,10 +167,34 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
       <p className="mb-1 text-sm text-text">
         <span className="font-semibold">Familia:</span> {entrada.plant.family ?? "Desconocida"}
       </p>
-      <p className="mb-4 text-sm text-text">
+      <p className="mb-1 text-sm text-text">
         <span className="font-semibold">Identificada el:</span>{" "}
         {new Date(entrada.identifiedAt).toLocaleDateString("es-CL")}
       </p>
+
+      <div
+        className={`mb-4 flex items-center justify-between rounded-2xl border p-3 ${
+          necesitaRiego(entrada) ? "border-danger/40 bg-danger/10" : "border-accent bg-surface"
+        }`}
+      >
+        <div>
+          <p className="text-sm font-bold text-primary">💧 Riego</p>
+          <p className="text-xs text-muted">
+            {entrada.lastWatered
+              ? `Regada hace ${diasDesdeUltimoRiego(entrada)} día(s)`
+              : `Sin registro — ${diasDesdeUltimoRiego(entrada)} día(s) desde que la identificaste`}
+            {" · cada "}
+            {entrada.plant.wateringFrequencyDays} días
+          </p>
+        </div>
+        <button
+          onClick={handleRegar}
+          disabled={regando}
+          className="rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+        >
+          {regando ? "..." : "Regué hoy"}
+        </button>
+      </div>
 
       {entrada.plant.careInstructions && (
         <>

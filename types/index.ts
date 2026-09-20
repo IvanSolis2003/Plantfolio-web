@@ -22,6 +22,7 @@ export interface Plant {
   careInstructions?: string;
   diseases?: string;
   nativeToChile: boolean;
+  wateringFrequencyDays: number;
 }
 
 export interface CollectionEntry {
@@ -35,6 +36,7 @@ export interface CollectionEntry {
   ubicacionAprox?: string;
   privado: boolean;
   identifiedAt: string;
+  lastWatered?: string;
   plant: Plant;
 }
 

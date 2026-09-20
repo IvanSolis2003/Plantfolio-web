@@ -7,6 +7,7 @@ import { parsearBody } from "@/lib/validar";
 const actualizarEntradaSchema = z.object({
   privado: z.boolean().optional(),
   notes: z.string().optional(),
+  regada: z.boolean().optional(),
 });
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -42,12 +43,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const validacion = await parsearBody(req, actualizarEntradaSchema);
   if ("error" in validacion) return validacion.error;
 
-  const { privado, notes } = validacion.data;
+  const { privado, notes, regada } = validacion.data;
   const actualizada = await prisma.collectionEntry.update({
     where: { id },
     data: {
       ...(privado !== undefined ? { privado } : {}),
       ...(notes !== undefined ? { notes } : {}),
+      ...(regada ? { lastWatered: new Date() } : {}),
     },
     include: { plant: true },
   });
