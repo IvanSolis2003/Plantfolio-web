@@ -73,6 +73,7 @@ model CollectionEntry {
   userId       String
   plantId      String
   photos       String[]
+  photoDates   DateTime[] @default([])
   notes        String?
   latitude     Float?
   longitude    Float?

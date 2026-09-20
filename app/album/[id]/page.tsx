@@ -35,6 +35,7 @@ export default async function DetalleEntradaPage({
         longitude: entrada.longitude ?? undefined,
         ubicacionAprox: entrada.ubicacionAprox ?? undefined,
         lastWatered: entrada.lastWatered?.toISOString(),
+        photoDates: entrada.photoDates.map((d) => d.toISOString()),
         plant: {
           ...entrada.plant,
           family: entrada.plant.family ?? undefined,

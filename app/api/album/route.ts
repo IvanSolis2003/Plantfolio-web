@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       userId: usuario.id,
       plantId,
       photos: [photoUrl],
+      photoDates: [new Date()],
       notes,
       latitude,
       longitude,

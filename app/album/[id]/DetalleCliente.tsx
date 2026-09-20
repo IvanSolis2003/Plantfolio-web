@@ -196,6 +196,32 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
         </button>
       </div>
 
+      {entrada.photos.length > 1 && (
+        <>
+          <p className="mb-2 text-sm font-bold text-primary">📅 Cómo creció</p>
+          <div className="mb-4 flex flex-col gap-2">
+            {entrada.photos.map((url, indice) => (
+              <button
+                key={url}
+                onClick={() => setFotoAbierta(indice)}
+                className="flex items-center gap-3 rounded-xl border border-accent bg-surface p-2 text-left"
+              >
+                <Image
+                  src={url}
+                  alt={entrada.plant.commonName}
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+                <p className="text-xs text-muted">
+                  {new Date(entrada.photoDates[indice]).toLocaleDateString("es-CL")}
+                </p>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
       {entrada.plant.careInstructions && (
         <>
           <p className="mb-1 text-sm font-bold text-primary">Cuidados</p>

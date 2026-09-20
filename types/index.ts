@@ -30,6 +30,7 @@ export interface CollectionEntry {
   userId: string;
   plantId: string;
   photos: string[];
+  photoDates: string[];
   notes?: string;
   latitude?: number;
   longitude?: number;

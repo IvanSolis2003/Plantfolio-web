@@ -52,7 +52,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const actualizada = await prisma.collectionEntry.update({
     where: { id },
-    data: { photos: [...entrada.photos, url] },
+    data: {
+      photos: [...entrada.photos, url],
+      photoDates: [...entrada.photoDates, new Date()],
+    },
     include: { plant: true },
   });
 
@@ -83,9 +86,13 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   if ("error" in validacionDelete) return validacionDelete.error;
 
   const { url } = validacionDelete.data;
+  const indice = entrada.photos.indexOf(url);
   const actualizada = await prisma.collectionEntry.update({
     where: { id },
-    data: { photos: entrada.photos.filter((f) => f !== url) },
+    data: {
+      photos: entrada.photos.filter((_, i) => i !== indice),
+      photoDates: entrada.photoDates.filter((_, i) => i !== indice),
+    },
     include: { plant: true },
   });
 
