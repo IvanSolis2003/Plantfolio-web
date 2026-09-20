@@ -23,7 +23,7 @@ export default async function GaleriaPage() {
   });
 
   return (
-    <div className="min-h-dvh bg-background pb-6">
+    <div className="min-h-dvh bg-background/90 pb-6">
       {!usuario && <HeaderPublico />}
 
       <div className="px-5 pt-6">

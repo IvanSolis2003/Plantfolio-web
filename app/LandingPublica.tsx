@@ -14,7 +14,7 @@ export default async function LandingPublica() {
   });
 
   return (
-    <div className="min-h-dvh bg-background pb-10">
+    <div className="min-h-dvh bg-background/90 pb-10">
       <HeaderPublico />
 
       <div className="px-5 pt-8 text-center">

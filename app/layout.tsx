@@ -5,6 +5,7 @@ import QueryProvider from "./QueryProvider";
 import SincronizarSesion from "./SincronizarSesion";
 import EstadoConexion from "@/components/EstadoConexion";
 import BarraInferior from "@/components/BarraInferior";
+import FondoHojas from "@/components/FondoHojas";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="es">
       <body className="bg-background text-text">
+        <FondoHojas />
         <QueryProvider>
           <SincronizarSesion usuario={usuario} />
           <EstadoConexion />

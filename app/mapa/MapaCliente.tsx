@@ -8,7 +8,7 @@ const MapaLeaflet = dynamic(() => import("./MapaLeaflet"), { ssr: false });
 export default function MapaCliente({ entradas }: { entradas: CollectionEntry[] }) {
   if (entradas.length === 0) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-background/90 px-6 text-center">
         <span className="mb-3 text-4xl">🗺️</span>
         <p className="text-xl font-bold text-primary">Mapa de Hallazgos</p>
         <p className="mt-2 text-sm text-muted">
@@ -20,7 +20,7 @@ export default function MapaCliente({ entradas }: { entradas: CollectionEntry[] 
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
+    <div className="flex h-dvh flex-col bg-background/90">
       <p className="px-5 pt-6 pb-3 text-xl font-bold text-primary">Mapa de Hallazgos</p>
       <div className="flex-1">
         <MapaLeaflet entradas={entradas} />

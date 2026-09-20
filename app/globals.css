@@ -1,3 +1,36 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.hoja-cayendo {
+  opacity: 0;
+  animation-name: hoja-caer;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes hoja-caer {
+  0% {
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(50vh) translateX(24px) rotate(180deg);
+  }
+  92% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(110vh) translateX(-16px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja-cayendo {
+    display: none;
+  }
+}

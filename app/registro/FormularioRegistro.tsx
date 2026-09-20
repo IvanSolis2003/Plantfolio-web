@@ -51,7 +51,7 @@ export default function FormularioRegistro() {
 
   if (mensaje) {
     return (
-      <div className="flex min-h-dvh flex-1 flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="flex min-h-dvh flex-1 flex-col items-center justify-center bg-background/90 px-6 text-center">
         <span className="mb-3 text-5xl">📬</span>
         <p className="mb-2 text-xl font-bold text-primary">Revisa tu correo</p>
         <p className="mb-6 text-sm text-muted">{mensaje}</p>
@@ -64,7 +64,7 @@ export default function FormularioRegistro() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-1 justify-center bg-background px-6 py-10">
+    <div className="flex min-h-dvh flex-1 justify-center bg-background/90 px-6 py-10">
       <div className="flex w-full max-w-sm flex-col justify-center">
         <div className="mb-8 flex flex-col items-center">
           <span className="mb-2 text-5xl">🌱</span>

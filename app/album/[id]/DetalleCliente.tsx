@@ -112,7 +112,7 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
   }
 
   return (
-    <div className="min-h-dvh bg-background px-5 pt-8 pb-10">
+    <div className="min-h-dvh bg-background/90 px-5 pt-8 pb-10">
       <Link href="/album" className="mb-4 inline-block text-sm font-semibold text-primary">
         ← Volver al álbum
       </Link>
