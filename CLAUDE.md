@@ -163,6 +163,7 @@ model CollectionEntry {
   userId       String
   plantId      String
   photos       String[]
+  photoDates   DateTime[] @default([])
   notes        String?
   latitude     Float?
   longitude    Float?
@@ -393,6 +394,31 @@ relación planta↔frecuencia↔última vez que se regó. Se agregó:
 
 No se integró con `AlertaRiego`/clima — son dos señales separadas a propósito
 (una es por especie y fecha, la otra es un tip general del día).
+
+## 📅 Historial/timeline por planta
+
+Las hasta 3 fotos de una entrada (`CollectionEntry.photos`) no tenían fecha
+individual, solo `identifiedAt` del conjunto entero. Se agregó
+`photoDates: DateTime[]` — **array paralelo a `photos`, mismo índice = misma
+foto** (no un modelo `Photo` separado, para no tocar todo lo que ya lee
+`photos` como `string[]` plano: `AlbumCliente.tsx`, `galeria/page.tsx`,
+`VisorFoto.tsx`, etc. siguen exactamente igual).
+
+- Migración `20260919140000_fechas_de_fotos` — la columna nueva y un backfill
+  con `array_fill("identifiedAt", ARRAY[array_length("photos", 1)])` para que
+  las fotos ya existentes queden con una fecha real (la única que había).
+- `POST /api/album` y `POST /api/album/:id/fotos` agregan a **ambos** arrays
+  en paralelo (`[...entrada.photos, url]` y `[...entrada.photoDates, new Date()]`).
+- `DELETE /api/album/:id/fotos` busca el índice de la URL en `photos`
+  (`indexOf`) y filtra **ambos** arrays por ese mismo índice — nunca por
+  valor en `photoDates`, porque dos fotos podrían compartir fecha.
+- `DetalleCliente.tsx` muestra una sección "📅 Cómo creció" (solo si hay más
+  de 1 foto) con cada miniatura + su fecha, reutilizando `VisorFoto` al tocarlas.
+
+**Regla si se toca este código:** cualquier cambio a `photos` (agregar,
+eliminar, reordenar) tiene que aplicar el mismo cambio a `photoDates` en la
+misma operación — si se desincronizan, el índice deja de significar "misma
+foto" y el timeline muestra fechas equivocadas.
 
 ## 📴 Modo offline: ver el álbum sin conexión
 
