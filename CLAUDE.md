@@ -181,6 +181,7 @@ model CollectionEntry {
   privado      Boolean  @default(false)
   identifiedAt DateTime @default(now())
   lastWatered  DateTime?
+  version      Int      @default(0)
   user         User     @relation(fields: [userId], references: [id])
   plant        Plant    @relation(fields: [plantId], references: [id])
 }
@@ -210,6 +211,7 @@ correr el seed de nuevo no duplica nada).
 | POST | `/api/auth/registro` | Registro → crea sesión en BD | ✅ |
 | POST | `/api/auth/login` | Login → crea sesión en BD | ✅ |
 | POST | `/api/auth/logout` | Borra sesión | ✅ |
+| POST | `/api/auth/reenviar-verificacion` | `{ email }` — reenvía el correo si no está verificado (throttle 1h) | ✅ |
 | GET | `/api/auth/me` | Usuario autenticado actual | ✅ |
 | POST | `/api/identify` | Envía foto a PlantNet + Cloudinary + upsert de Plant | ✅ |
 | GET/POST | `/api/album` | Álbum del usuario (POST reusa la foto que ya subió identify, no resube) | ✅ |
@@ -588,6 +590,56 @@ servidor, en vez de perseguir la causa exacta del error nativo. Usado en los
 tres lugares donde el cliente sube una imagen: `FormularioEscanear.tsx`,
 `DetalleCliente.tsx` (fotos del álbum), `EditarPerfil.tsx` (avatar). Cualquier
 input de foto nuevo debe usar esta función, no un `FileReader` a mano.
+
+## ⚠️ Trampa: race condition al agregar/eliminar fotos (bloqueo optimista)
+
+`POST`/`DELETE /api/album/:id/fotos` seguían el patrón "leer entidad completa
+→ modificar `photos`/`photoDates` en JS → escribir el array completo de
+vuelta" sin ninguna protección de concurrencia. Con dos pestañas abiertas (o
+un reintento de red tras un timeout), la segunda request leía el estado
+*antes* de que la primera escribiera, y su `update` pisaba el cambio de la
+primera en silencio — sin error visible, con `photos`/`photoDates`
+potencialmente desincronizados.
+
+Fix: `CollectionEntry.version` (`Int @default(0)`, bloqueo optimista). Cada
+escritura usa `updateMany({ where: { id, version: entrada.version }, data: {
+..., version: { increment: 1 } } })` en vez de `update({ where: { id } })`.
+Si `count === 0`, alguien más escribió primero — se devuelve 409 en vez de
+sobreescribir con datos viejos. El cliente ya maneja esto sin cambios: el
+`catch` genérico de `DetalleCliente.tsx` muestra el `error` del `ApiResponse`
+tal cual. **Si se agrega un nuevo endpoint que reconstruye un array a partir
+de una lectura previa, hay que aplicar el mismo patrón** (leer `version`,
+`updateMany` con ese `version` en el `where`, chequear `count`).
+
+De paso se corrigió que `DELETE` con una URL que ya no está en `photos`
+(`indexOf` devuelve `-1`) contestaba `success: true` sin cambiar nada — ahora
+devuelve 404 "Esa foto ya no existe".
+
+## ⚠️ Trampa: sin límite de tamaño en las imágenes
+
+Los 3 endpoints que reciben una foto en base64 (`identify`, `album/:id/fotos`,
+`perfil/avatar`) validaban el campo `image` solo con `.min(1)`, sin techo.
+`lib/validar.ts` exporta `imagenSchema` (con `.max(8_000_000)` caracteres,
+~6MB de imagen real) para reusar en los tres en vez de repetir el número.
+Cualquier input de foto nuevo debe usar `imagenSchema`, no un `z.string()`
+suelto.
+
+## ⚠️ Trampa: cuenta bloqueada para siempre si vence el link de verificación
+
+El link de verificación dura 24h (`lib/cuentas.ts`); si vencía, el texto de
+`/verificar` le decía al usuario "registrate de nuevo con el mismo correo",
+pero `POST /api/auth/registro` rechaza con 409 si el email ya existe —
+**sin importar que nunca se haya verificado**. No había ningún endpoint para
+pedir un nuevo enlace, así que el usuario quedaba sin salida.
+
+Fix: `POST /api/auth/reenviar-verificacion` — mensaje genérico (no revela si
+el correo existe, salvo que ya esté confirmado), con un throttle simple: si
+al usuario le queda más de 23h de vigencia en el token actual (o sea, se lo
+mandaron hace menos de 1h), no reenvía. `POST /api/auth/login` ahora incluye
+`estado: "sin-verificar"` en el 403 (antes solo mandaba el mensaje en texto);
+`FormularioEntrar.tsx` detecta ese campo y muestra un link "¿Venció el
+enlace? Reenviar correo de confirmación" que llama al endpoint nuevo con el
+email que el usuario ya escribió en el form.
 
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
