@@ -22,10 +22,21 @@ export default async function LandingPublica() {
         <h1 className="mb-2 text-2xl font-bold text-primary">
           Identifica y colecciona la flora chilena
         </h1>
-        <p className="mb-6 text-sm text-muted">
+        <p className="mb-4 text-sm text-muted">
           Sacá una foto, dejá que la IA la identifique, y armá tu propio álbum de
           plantas encontradas.
         </p>
+        <div className="mb-8 flex flex-wrap justify-center gap-2">
+          <span className="rounded-full bg-accent/40 px-3 py-1 text-xs font-semibold text-primary">
+            ✅ 100% gratis
+          </span>
+          <span className="rounded-full bg-accent/40 px-3 py-1 text-xs font-semibold text-primary">
+            🚫 Sin ads
+          </span>
+          <span className="rounded-full bg-accent/40 px-3 py-1 text-xs font-semibold text-primary">
+            🔓 Sin letra chica ni suscripciones ocultas
+          </span>
+        </div>
         <div className="mb-8 flex justify-center gap-3">
           <Link href="/registro" className="rounded-xl bg-primary px-6 py-3 font-bold text-white">
             Crear cuenta gratis
