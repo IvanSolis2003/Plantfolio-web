@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { calcularLogros } from "@/lib/logros";
+import { calcularDesafios, nombreTemporada } from "@/lib/desafios";
 import BotonSalir from "./BotonSalir";
 import ToggleColeccionPrivada from "./ToggleColeccionPrivada";
 import EditarPerfil from "./EditarPerfil";
@@ -38,25 +39,26 @@ export default async function PerfilPage() {
     { label: "Raras", value: raras },
   ];
 
-  const logros = calcularLogros(
-    entradas.map((entrada) => ({
-      ...entrada,
-      identifiedAt: entrada.identifiedAt.toISOString(),
-      notes: entrada.notes ?? undefined,
-      latitude: entrada.latitude ?? undefined,
-      longitude: entrada.longitude ?? undefined,
-      ubicacionAprox: entrada.ubicacionAprox ?? undefined,
-      lastWatered: entrada.lastWatered?.toISOString(),
-      photoDates: entrada.photoDates.map((d) => d.toISOString()),
-      plant: {
-        ...entrada.plant,
-        family: entrada.plant.family ?? undefined,
-        description: entrada.plant.description ?? undefined,
-        careInstructions: entrada.plant.careInstructions ?? undefined,
-        diseases: entrada.plant.diseases ?? undefined,
-      },
-    }))
-  );
+  const entradasMapeadas = entradas.map((entrada) => ({
+    ...entrada,
+    identifiedAt: entrada.identifiedAt.toISOString(),
+    notes: entrada.notes ?? undefined,
+    latitude: entrada.latitude ?? undefined,
+    longitude: entrada.longitude ?? undefined,
+    ubicacionAprox: entrada.ubicacionAprox ?? undefined,
+    lastWatered: entrada.lastWatered?.toISOString(),
+    photoDates: entrada.photoDates.map((d) => d.toISOString()),
+    plant: {
+      ...entrada.plant,
+      family: entrada.plant.family ?? undefined,
+      description: entrada.plant.description ?? undefined,
+      careInstructions: entrada.plant.careInstructions ?? undefined,
+      diseases: entrada.plant.diseases ?? undefined,
+    },
+  }));
+
+  const logros = calcularLogros(entradasMapeadas);
+  const desafios = calcularDesafios(entradasMapeadas);
 
   return (
     <div className="flex min-h-dvh flex-col bg-background px-6">
@@ -98,6 +100,34 @@ export default async function PerfilPage() {
           >
             <span className="text-2xl">{logro.emoji}</span>
             <p className="mt-1 text-[10px] font-semibold text-text">{logro.nombre}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mb-3 text-sm font-bold text-primary">🍂 Desafíos de {nombreTemporada()}</p>
+      <div className="mb-6 flex flex-col gap-2">
+        {desafios.map((desafio) => (
+          <div
+            key={desafio.id}
+            className={`rounded-xl border p-3 ${
+              desafio.completado ? "border-primary bg-primary/10" : "border-accent bg-surface"
+            }`}
+          >
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-text">
+                {desafio.emoji} {desafio.nombre}
+              </p>
+              <p className="shrink-0 text-xs font-bold text-primary">
+                {desafio.progreso}/{desafio.meta}
+              </p>
+            </div>
+            <p className="mb-2 text-xs text-muted">{desafio.descripcion}</p>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-accent/30">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${Math.min(100, (desafio.progreso / desafio.meta) * 100)}%` }}
+              />
+            </div>
           </div>
         ))}
       </div>
