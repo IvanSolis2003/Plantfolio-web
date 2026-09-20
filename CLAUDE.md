@@ -134,6 +134,8 @@ model User {
   emailVerificado   DateTime?
   tokenVerificacion String?   @unique
   tokenExpira       DateTime?
+  tokenReset        String?   @unique
+  tokenResetExpira  DateTime?
   aprobado          Boolean   @default(false)
   esAdmin           Boolean   @default(false)
   coleccionPrivada  Boolean   @default(false)
@@ -212,6 +214,8 @@ correr el seed de nuevo no duplica nada).
 | POST | `/api/auth/login` | Login → crea sesión en BD | ✅ |
 | POST | `/api/auth/logout` | Borra sesión | ✅ |
 | POST | `/api/auth/reenviar-verificacion` | `{ email }` — reenvía el correo si no está verificado (throttle 1h) | ✅ |
+| POST | `/api/auth/olvide-password` | `{ email }` — manda enlace de reseteo si el correo existe (throttle 1h) | ✅ |
+| POST | `/api/auth/restablecer` | `{ token, password }` — valida el token, hashea la contraseña, invalida todas las sesiones | ✅ |
 | GET | `/api/auth/me` | Usuario autenticado actual | ✅ |
 | POST | `/api/identify` | Envía foto a PlantNet + Cloudinary + upsert de Plant | ✅ |
 | GET/POST | `/api/album` | Álbum del usuario (POST reusa la foto que ya subió identify, no resube) | ✅ |
@@ -591,6 +595,20 @@ tres lugares donde el cliente sube una imagen: `FormularioEscanear.tsx`,
 `DetalleCliente.tsx` (fotos del álbum), `EditarPerfil.tsx` (avatar). Cualquier
 input de foto nuevo debe usar esta función, no un `FileReader` a mano.
 
+## ⚠️ Trampa: `findFirst` + `create` condicional sin manejar la colisión
+
+`POST /api/plantas/manual` buscaba con `findFirst` (case-insensitive) y si no
+encontraba nada hacía `create` — si dos usuarios identifican manualmente la
+misma especie nueva casi al mismo tiempo, ambos pasan el `findFirst` sin
+encontrar nada y el segundo `create` choca contra `scientificName @unique`
+con un `P2002` sin capturar → 500. Fix: `try/catch` alrededor del `create`,
+si el error es `Prisma.PrismaClientKnownRequestError` con `code === "P2002"`
+se reusa la fila que ganó la carrera (`findUniqueOrThrow` por
+`scientificName`) en vez de tirar el 500. Cuando el registro ya se sabe que
+existe de antes (no hay carrera), seguir usando `upsert` como en
+`identify/route.ts` — este `try/catch` es específicamente para el caso de
+"no existía y dos requests intentaron crearlo al mismo tiempo".
+
 ## ⚠️ Trampa: race condition al agregar/eliminar fotos (bloqueo optimista)
 
 `POST`/`DELETE /api/album/:id/fotos` seguían el patrón "leer entidad completa
@@ -640,6 +658,29 @@ mandaron hace menos de 1h), no reenvía. `POST /api/auth/login` ahora incluye
 `FormularioEntrar.tsx` detecta ese campo y muestra un link "¿Venció el
 enlace? Reenviar correo de confirmación" que llama al endpoint nuevo con el
 email que el usuario ya escribió en el form.
+
+## ⚠️ Trampa: no había forma de recuperar la contraseña
+
+No existía ningún flujo de "olvidé mi contraseña" — cualquier reseteo
+dependía de que Iván interviniera a mano en la base. Fix: `User.tokenReset`/
+`tokenResetExpira`, **campos separados** de `tokenVerificacion`/`tokenExpira`
+(a propósito: si compartieran el mismo campo, pedir un reset invalidaría en
+silencio un link de verificación de email pendiente, o viceversa).
+
+- `POST /api/auth/olvide-password` — mensaje genérico (no revela si el
+  correo existe), mismo throttle de 1h que `reenviar-verificacion`.
+- `POST /api/auth/restablecer` — valida el token con `tokenVigente()` (mismo
+  helper que usa la verificación de email), hashea la nueva contraseña, y
+  **invalida todas las `AuthSession` del usuario** (`$transaction` con
+  `authSession.deleteMany`) — si alguien pidió el reset porque sospecha que
+  le robaron la cuenta, esto cierra cualquier sesión activa en otros
+  dispositivos.
+- Link "¿Olvidaste tu contraseña?" en `FormularioEntrar.tsx` → `/olvide-password`
+  → `/restablecer?token=...` (el link que llega por correo).
+
+Verificado con un flujo completo contra producción (token inválido, password
+corta, reset válido, reutilizar el mismo token después de usado, chequeo de
+que las sesiones viejas quedan invalidadas) antes de darlo por bueno.
 
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
