@@ -5,11 +5,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RarityBadge from "@/components/RarityBadge";
+import { exportarAlbumComoCsv } from "@/lib/exportarCsv";
 import type { ApiResponse, CollectionEntry, Rarity } from "@/types";
 
 const RAREZAS: Rarity[] = ["COMUN", "POCO_COMUN", "ENDEMICA", "PROTEGIDA", "CASI_EXTINTA"];
 
-export default function AlbumCliente({ entradas: entradasIniciales }: { entradas: CollectionEntry[] }) {
+export default function AlbumCliente({
+  entradas: entradasIniciales,
+  nombreUsuario,
+}: {
+  entradas: CollectionEntry[];
+  nombreUsuario: string;
+}) {
   const [entradas, setEntradas] = useState(entradasIniciales);
   const [busqueda, setBusqueda] = useState("");
   const [rarezaFiltro, setRarezaFiltro] = useState<Rarity | "TODAS">("TODAS");
@@ -71,7 +78,16 @@ export default function AlbumCliente({ entradas: entradasIniciales }: { entradas
 
   return (
     <div className="min-h-dvh bg-background px-5 pt-12 pb-6">
-      <p className="mb-4 text-xl font-bold text-primary">Mi Álbum</p>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <p className="text-xl font-bold text-primary">Mi Álbum</p>
+        <button
+          onClick={() => exportarAlbumComoCsv(entradas, nombreUsuario)}
+          className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-primary"
+          title="Exportar en formato compatible con GBIF/iNaturalist"
+        >
+          📤 Exportar CSV
+        </button>
+      </div>
 
       <input
         type="text"

@@ -21,6 +21,7 @@ export default async function AlbumPage() {
 
   return (
     <AlbumCliente
+      nombreUsuario={usuario.name}
       entradas={entradas.map((entrada) => ({
         ...entrada,
         identifiedAt: entrada.identifiedAt.toISOString(),
