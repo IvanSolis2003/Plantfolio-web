@@ -720,36 +720,49 @@ de `null` como 404. Y el bloqueo optimista, que estaba duplicado casi
 textual entre `POST` y `DELETE`, se extrajo a `actualizarConBloqueo()` /
 `respuestaSegunResultado()` compartidos por ambos handlers.
 
-## 🍂 Fondo animado de hojas cayendo
+## 🍂 Fondo con degradado y hojas cayendo
 
-El fondo era blanco liso (`#F8FAF9`) en las 17 pantallas. Se agregó
-`components/FondoHojas.tsx` — una capa `position: fixed; inset: 0; z-index: 0`
-con 12 hojas (emoji `🍂`/`🍁`, sin SVG ni librería nueva) que caen con la
-animación `hoja-caer` (`app/globals.css`): traslación diagonal + rotación,
-con `animation-delay` **negativo** por hoja para que arranquen ya en
-movimiento (staggered) en vez de todas sincronizadas al cargar la página.
-Respeta `prefers-reduced-motion: reduce` (las oculta con `display: none`).
+El fondo era blanco liso (`#F8FAF9`, la clase Tailwind `bg-background`) en
+las 17 pantallas. Ahora es un degradado verde-crema con hojas animadas
+cayendo encima, en dos piezas:
 
-**Por qué no basta con renderizar el componente:** cada una de las 17
-pantallas pinta su propio `<div className="min-h-dvh bg-background ...">`
-opaco de pantalla completa — sin tocar eso, las hojas quedarían
-completamente tapadas por ese color sólido sin importar el `z-index`. Se
-bajó la opacidad de esos 17 wrappers a `bg-background/90` (`#f8faf9e6`, 90%
-opaco) para que el fondo animado se note de forma sutil detrás. Las cards,
-inputs y botones siguen usando `bg-surface` sólido encima, así que la
-legibilidad del contenido no cambia — el efecto solo se ve en los espacios
-"vacíos" de cada pantalla.
+1. **Degradado** — `body { background: linear-gradient(#eaf5ee 0%, #fbf3e7
+   100%) }` en `app/globals.css`, verde pálido arriba fundiéndose a crema
+   cálido abajo (contrasta mejor con los tonos naranja/marrón de las hojas
+   que el blanco frío original). Puesto en CSS plano, no como clase
+   Tailwind, porque `background` con gradiente no es algo que la utilidad
+   `bg-*` pueda expresar. `<body>` ya **no** lleva la clase `bg-background`
+   (se sacó de `app/layout.tsx`) — si volviera a agregarse, su mayor
+   especificidad de selector taparía el degradado sin avisar.
+2. **Hojas** — `components/FondoHojas.tsx`, una capa `position: fixed;
+   inset: 0; z-index: 0` con 12 hojas (emoji `🍂`/`🍁`, sin SVG ni librería
+   nueva) que caen con la animación `hoja-caer` (`app/globals.css`):
+   traslación diagonal + rotación, con `animation-delay` **negativo** por
+   hoja para que arranquen ya en movimiento (staggered) en vez de todas
+   sincronizadas al cargar la página. Respeta `prefers-reduced-motion:
+   reduce` (las oculta con `display: none`). Sin randomización en JS — los
+   12 valores están escritos a mano en el array `HOJAS`, para no arriesgar
+   un mismatch de hidratación SSR/cliente con `Math.random()`.
 
-**Excepción a propósito:** el único uso de la clase `bg-background` (sin
-`/90`) que quedó intacto es un `<input>` de texto en
+**Por qué las 17 pantallas ya no llevan `bg-background`:** cada una pinta su
+propio `<div className="min-h-dvh ...">` de pantalla completa. En la primera
+versión de este fondo se probó bajarles la opacidad (`bg-background/90`)
+para que las hojas se notaran *a través* de un blanco casi sólido — pero con
+el degradado como fondo real, esa capa ya no cumple ningún propósito: se
+sacó `bg-background`/`bg-background/90` de las 17 pantallas por completo,
+dejando que el degradado y las hojas se vean sin superposición. Las cards,
+inputs y botones siguen con `bg-surface` sólido encima, así que la
+legibilidad del contenido no cambió.
+
+**Excepción a propósito:** el único uso que queda de la clase
+`bg-background` (sin degradado) es un `<input>` de texto en
 `FormularioEscanear.tsx` — no es un fondo de pantalla completa, es el color
-de relleno de un campo, y ponerlo translúcido se vería roto.
+de relleno de un campo, y ponerlo transparente rompería el input.
 
-**Si se agrega una pantalla nueva:** usar `bg-background/90` en el wrapper
-de página (no `bg-background` sólido), para que las hojas se sigan viendo
-consistentes en toda la app. `FondoHojas` se renderiza una sola vez, en
-`app/layout.tsx`, antes de `QueryProvider` — no hay que agregarlo en cada
-pantalla.
+**Si se agrega una pantalla nueva:** el wrapper de página **no necesita
+ninguna clase de fondo** — dejarlo transparente para heredar el degradado
+de `body`. `FondoHojas` se renderiza una sola vez, en `app/layout.tsx`,
+antes de `QueryProvider` — no hay que agregarlo en cada pantalla.
 
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
