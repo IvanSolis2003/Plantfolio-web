@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { esNativaDeChile } from "@/lib/floraNativaChile";
@@ -29,15 +30,24 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const planta =
-    existente ??
-    (await prisma.plant.create({
+  if (existente) {
+    return NextResponse.json({ success: true, data: existente });
+  }
+
+  try {
+    const planta = await prisma.plant.create({
       data: {
         commonName: nombreLimpio,
         scientificName: nombreLimpio,
         nativeToChile: esNativaDeChile(nombreLimpio),
       },
-    }));
-
-  return NextResponse.json({ success: true, data: planta });
+    });
+    return NextResponse.json({ success: true, data: planta });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const planta = await prisma.plant.findUniqueOrThrow({ where: { scientificName: nombreLimpio } });
+      return NextResponse.json({ success: true, data: planta });
+    }
+    throw err;
+  }
 }
