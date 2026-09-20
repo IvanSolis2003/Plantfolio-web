@@ -60,7 +60,7 @@ app/
 ├── manifest.ts           ← manifest de PWA
 ├── registrar-sw.tsx      ← registra el service worker (solo producción)
 └── page.tsx              ← Inicio
-components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge, HeaderPublico, VisorFoto
+components/               ← EstadoConexion, BarraInferior (5 tabs), RarityBadge, HeaderPublico, VisorFoto, FondoHojas
 lib/
 ├── prisma.ts             ← PrismaClient + adapter de Neon
 ├── sesion.ts             ← sesión en BD (crearSesion/cerrarSesion/obtenerUsuarioServidor/obtenerUsuarioId)
@@ -719,6 +719,37 @@ la entrada completa se borraba justo en ese instante (`DELETE
 de `null` como 404. Y el bloqueo optimista, que estaba duplicado casi
 textual entre `POST` y `DELETE`, se extrajo a `actualizarConBloqueo()` /
 `respuestaSegunResultado()` compartidos por ambos handlers.
+
+## 🍂 Fondo animado de hojas cayendo
+
+El fondo era blanco liso (`#F8FAF9`) en las 17 pantallas. Se agregó
+`components/FondoHojas.tsx` — una capa `position: fixed; inset: 0; z-index: 0`
+con 12 hojas (emoji `🍂`/`🍁`, sin SVG ni librería nueva) que caen con la
+animación `hoja-caer` (`app/globals.css`): traslación diagonal + rotación,
+con `animation-delay` **negativo** por hoja para que arranquen ya en
+movimiento (staggered) en vez de todas sincronizadas al cargar la página.
+Respeta `prefers-reduced-motion: reduce` (las oculta con `display: none`).
+
+**Por qué no basta con renderizar el componente:** cada una de las 17
+pantallas pinta su propio `<div className="min-h-dvh bg-background ...">`
+opaco de pantalla completa — sin tocar eso, las hojas quedarían
+completamente tapadas por ese color sólido sin importar el `z-index`. Se
+bajó la opacidad de esos 17 wrappers a `bg-background/90` (`#f8faf9e6`, 90%
+opaco) para que el fondo animado se note de forma sutil detrás. Las cards,
+inputs y botones siguen usando `bg-surface` sólido encima, así que la
+legibilidad del contenido no cambia — el efecto solo se ve en los espacios
+"vacíos" de cada pantalla.
+
+**Excepción a propósito:** el único uso de la clase `bg-background` (sin
+`/90`) que quedó intacto es un `<input>` de texto en
+`FormularioEscanear.tsx` — no es un fondo de pantalla completa, es el color
+de relleno de un campo, y ponerlo translúcido se vería roto.
+
+**Si se agrega una pantalla nueva:** usar `bg-background/90` en el wrapper
+de página (no `bg-background` sólido), para que las hojas se sigan viendo
+consistentes en toda la app. `FondoHojas` se renderiza una sola vez, en
+`app/layout.tsx`, antes de `QueryProvider` — no hay que agregarlo en cada
+pantalla.
 
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
