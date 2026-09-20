@@ -35,10 +35,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="text-text">
         <FondoHojas />
         <QueryProvider>
-          <SincronizarSesion usuario={usuario} />
-          <EstadoConexion />
-          <div className={usuario ? "pb-[60px]" : undefined}>{children}</div>
-          {usuario && <BarraInferior />}
+          {/* transform crea un containing block nuevo: la barra inferior (fixed)
+              queda contenida en este ancho en vez de pegarse a los bordes del navegador */}
+          <div className="relative mx-auto max-w-md transform md:min-h-dvh md:shadow-2xl">
+            <SincronizarSesion usuario={usuario} />
+            <EstadoConexion />
+            <div className={usuario ? "pb-[60px]" : undefined}>{children}</div>
+            {usuario && <BarraInferior />}
+          </div>
         </QueryProvider>
         <RegistrarServiceWorker />
         <Script
