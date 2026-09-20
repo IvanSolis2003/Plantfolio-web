@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import RegistrarServiceWorker from "./registrar-sw";
 import QueryProvider from "./QueryProvider";
 import SincronizarSesion from "./SincronizarSesion";
@@ -38,6 +39,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {usuario && <BarraInferior />}
         </QueryProvider>
         <RegistrarServiceWorker />
+        <Script
+          src="https://iasm-pulse.vercel.app/track.js"
+          data-site="plantfolio-web.vercel.app"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
