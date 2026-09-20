@@ -66,7 +66,7 @@ export default function AlbumCliente({
 
   if (entradas.length === 0) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-background/90 px-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
         <span className="mb-3 text-4xl">📗</span>
         <p className="text-xl font-bold text-primary">Mi Álbum</p>
         <p className="mt-2 text-sm text-muted">
@@ -77,7 +77,7 @@ export default function AlbumCliente({
   }
 
   return (
-    <div className="min-h-dvh bg-background/90 px-5 pt-12 pb-6">
+    <div className="min-h-dvh px-5 pt-12 pb-6">
       <div className="mb-4 flex items-center justify-between gap-2">
         <p className="text-xl font-bold text-primary">Mi Álbum</p>
         <button

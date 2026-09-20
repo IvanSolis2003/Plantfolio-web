@@ -61,7 +61,7 @@ export default async function PerfilPage() {
   const desafios = calcularDesafios(entradasMapeadas);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background/90 px-6">
+    <div className="flex min-h-dvh flex-col px-6">
       <div className="mt-16 mb-2 flex flex-col items-center">
         <p className="text-2xl font-bold text-primary">{usuario.name}</p>
         <p className="mb-4 text-sm text-muted">{usuario.email}</p>

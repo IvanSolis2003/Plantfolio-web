@@ -138,7 +138,7 @@ export default function FormularioEscanear() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center bg-background/90 px-6 pt-12 pb-6">
+    <div className="flex min-h-dvh flex-col items-center px-6 pt-12 pb-6">
       <span className="mb-3 text-4xl">🔍</span>
       <p className="mb-6 text-xl font-bold text-primary">Identificar Planta</p>
 

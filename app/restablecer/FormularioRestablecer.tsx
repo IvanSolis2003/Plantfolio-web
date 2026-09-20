@@ -51,7 +51,7 @@ export default function FormularioRestablecer({ token }: { token: string }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-1 justify-center bg-background/90 px-6">
+    <div className="flex min-h-dvh flex-1 justify-center px-6">
       <div className="flex w-full max-w-sm flex-col justify-center">
         <div className="mb-10 flex flex-col items-center">
           <span className="mb-2 text-5xl">🌿</span>

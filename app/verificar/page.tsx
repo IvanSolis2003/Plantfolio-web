@@ -59,7 +59,7 @@ export default async function VerificarPage({
   const { titulo, texto } = TEXTOS[desenlace];
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-background/90 px-6 text-center">
+    <div className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
       <span className="mb-3 text-4xl">🌿</span>
       <p className="mb-2 text-xl font-bold text-primary">{titulo}</p>
       <p className="mb-6 text-sm text-muted">{texto}</p>

@@ -31,7 +31,7 @@ export default async function DetallePublicoPage({
   const { user } = entrada;
 
   return (
-    <div className="min-h-dvh bg-background/90 pb-10">
+    <div className="min-h-dvh pb-10">
       {!usuario && <HeaderPublico />}
 
       <div className="px-5 pt-6">

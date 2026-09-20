@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  background: linear-gradient(180deg, #eaf5ee 0%, #fbf3e7 100%);
+}
+
 .hoja-cayendo {
   opacity: 0;
   animation-name: hoja-caer;

@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="es">
-      <body className="bg-background text-text">
+      <body className="text-text">
         <FondoHojas />
         <QueryProvider>
           <SincronizarSesion usuario={usuario} />
