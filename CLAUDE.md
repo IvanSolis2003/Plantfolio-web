@@ -682,6 +682,44 @@ Verificado con un flujo completo contra producción (token inválido, password
 corta, reset válido, reutilizar el mismo token después de usado, chequeo de
 que las sesiones viejas quedan invalidadas) antes de darlo por bueno.
 
+## ⚠️ Trampa: el mensaje de throttle filtraba si un correo existía
+
+`reenviar-verificacion` y `olvide-password` devuelven un mensaje genérico a
+propósito para no revelar si un correo está registrado. Pero el caso de
+throttle ("ya te mandamos un correo hace instantes, esperá 1h") devolvía un
+mensaje **distinto** al genérico — así que dos llamadas seguidas al mismo
+endpoint con el mismo correo permitían distinguir "existe y no está
+verificada/no venció el throttle" de "no existe o ya está verificada",
+exactamente lo que el mensaje genérico quería evitar. Encontrado por una
+segunda pasada de auditoría (otra sesión de Claude, verificado a mano línea
+por línea antes de aplicar el fix — no se asume que un hallazgo externo es
+correcto sin comprobarlo contra el código real). Fix: el throttle devuelve
+el mismo `MENSAJE_GENERICO` que todos los demás casos, sin excepción.
+**Cualquier endpoint nuevo con este patrón (mensaje genérico + un caso
+especial de throttle/rate-limit) tiene que devolver el mismo mensaje en
+todas las ramas de éxito**, no una variante que delate el estado interno.
+
+## ⚠️ Trampa: subir a Cloudinary antes de validar la escritura deja huérfanos
+
+En `POST /api/album/:id/fotos`, `subirImagen()` corría antes del chequeo de
+`version` (bloqueo optimista). Si la escritura perdía la carrera (alguien
+más modificó la entrada primero), la imagen ya subida a Cloudinary quedaba
+sin referenciar en ningún lado para siempre. Fix: `lib/cloudinary.ts` exporta
+`eliminarImagen(url)` (extrae el `public_id` de la URL con una regex sobre
+`/upload/.../<public_id>.<ext>` y llama a `cloudinary.uploader.destroy`), que
+se invoca cuando `actualizarConBloqueo()` no queda en estado `"ok"`. Cualquier
+flujo que suba un archivo a un servicio externo *antes* de confirmar que el
+resto de la operación se pudo completar necesita este mismo patrón de
+limpieza si la escritura puede fallar después.
+
+De paso se corrigieron dos cosas más en el mismo endpoint: `findUniqueOrThrow`
+después de un `updateMany` exitoso podía tirar una excepción sin capturar si
+la entrada completa se borraba justo en ese instante (`DELETE
+/api/album/:id` concurrente) — se cambió a `findUnique` con manejo explícito
+de `null` como 404. Y el bloqueo optimista, que estaba duplicado casi
+textual entre `POST` y `DELETE`, se extrajo a `actualizarConBloqueo()` /
+`respuestaSegunResultado()` compartidos por ambos handlers.
+
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
 PlantNet y Cloudinary respondieron al toque, pero **OpenWeather tarda un par
