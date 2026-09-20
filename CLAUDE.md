@@ -74,7 +74,8 @@ lib/
 ├── floraNativaChile.ts   ← lista curada de especies nativas, usada al identificar y en búsqueda manual
 ├── imagenCliente.ts      ← recodifica cualquier foto a JPEG (canvas) antes de subirla, evita el bug de HEIC
 ├── riego.ts              ← diasDesdeUltimoRiego/necesitaRiego, funciones puras usables en server y client
-└── validar.ts            ← parsearBody(req, schema) con Zod, usado en todos los route handlers con body
+├── validar.ts            ← parsearBody(req, schema) con Zod, usado en todos los route handlers con body
+└── exportarCsv.ts        ← exporta el álbum a CSV Darwin Core (GBIF/iNaturalist), 100% cliente
 store/authStore.ts        ← Zustand, solo el usuario (no el token)
 prisma/
 ├── schema.prisma          ← modelos de datos
@@ -412,6 +413,26 @@ identificándolas una por una con la cámara. `CatalogoCliente.tsx` hace
 `fetch` una vez al montar y filtra en memoria (18 registros, no vale la pena
 pegarle a la API por cada tecleo). Enlazada desde la tarjeta "Flora Chilena"
 de Inicio y desde la landing pública.
+
+## 🌍 Exportación ciencia ciudadana (CSV Darwin Core)
+
+Botón "📤 Exportar CSV" en `AlbumCliente.tsx` — `lib/exportarCsv.ts` arma un
+CSV con columnas del estándar Darwin Core que usa GBIF (`scientificName`,
+`eventDate`, `decimalLatitude`/`decimalLongitude`, `locality`, `recordedBy`,
+`associatedMedia`, `establishmentMeans`) y lo descarga con
+`Blob` + `URL.createObjectURL` — **sin backend ni librería nueva**, mismo
+truco de generación 100% cliente que usa RutinIA con `window.print()`. No es
+un Darwin Core Archive completo (eso requeriría un `meta.xml` y empaquetado
+zip), es un CSV con esos nombres de columna — suficiente para que un usuario
+lo suba a mano a iNaturalist o lo adjunte a un reporte a GBIF, no una
+integración automática con ninguna de las dos plataformas.
+
+## 🎓 Posicionamiento "gratis, sin ads" en la landing
+
+`LandingPublica.tsx` tiene 3 badges en el hero ("100% gratis", "Sin ads",
+"Sin letra chica ni suscripciones ocultas") — es la queja #1 del mercado
+según la investigación de Opus (cobros inesperados post-trial, paywalls
+agresivos, dark patterns en cancelación). Solo copy, sin lógica nueva.
 
 ## 📅 Historial/timeline por planta
 
