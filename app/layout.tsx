@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <FondoHojas />
         <QueryProvider>
           <div className="flex min-h-dvh">
-            {usuario && <NavEscritorio />}
+            <NavEscritorio conSesion={!!usuario} />
             <div className="min-w-0 flex-1">
               <SincronizarSesion usuario={usuario} />
               <EstadoConexion />
