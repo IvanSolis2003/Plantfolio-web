@@ -53,7 +53,7 @@ app/
 ├── catalogo/             ← pública, buscador de las especies del catálogo (CatalogoCliente.tsx, GET /api/plants)
 ├── api/plants/           ← GET público, catálogo completo (consumido por /catalogo)
 ├── api/plantas/manual/   ← POST, busca o crea una Plant por nombre escrito a mano
-├── LandingPublica.tsx    ← lo que ve un visitante sin sesión en / (hero + preview de galería)
+├── LandingPublica.tsx    ← lo que ve un visitante sin sesión en / (hero + galería pública completa embebida, mismo grid/tarjeta que /galeria)
 ├── AlertaRiego.tsx       ← cliente, pide geolocalización best-effort, se muestra en Inicio
 ├── PlantasPorRegar.tsx   ← cliente, lista de plantas que necesitan riego hoy, se muestra en Inicio
 ├── layout.tsx           ← resuelve sesión server-side, PWA, React Query
