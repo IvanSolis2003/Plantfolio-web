@@ -43,7 +43,7 @@ export default function CatalogoCliente() {
       ) : filtradas.length === 0 ? (
         <p className="mt-8 text-center text-sm text-muted">Ninguna especie coincide con la búsqueda.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
           {filtradas.map((planta) => (
             <div key={planta.id} className="rounded-2xl border border-accent bg-surface p-4">
               <div className="mb-1 flex items-center justify-between gap-2">

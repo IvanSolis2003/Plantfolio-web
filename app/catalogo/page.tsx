@@ -14,7 +14,7 @@ export default async function CatalogoPage() {
     <div className="min-h-dvh pb-6">
       {!usuario && <HeaderPublico />}
 
-      <div className="px-5 pt-6">
+      <div className="px-5 pt-6 md:max-w-6xl md:mx-auto md:px-8 md:pt-10">
         <p className="mb-1 text-xl font-bold text-primary">Catálogo de flora chilena</p>
         <p className="mb-4 text-sm text-muted">
           Especies documentadas en Plantfolio, con cuidados y datos de conservación.

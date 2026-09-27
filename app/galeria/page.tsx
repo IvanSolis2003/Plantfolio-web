@@ -26,7 +26,7 @@ export default async function GaleriaPage() {
     <div className="min-h-dvh pb-6">
       {!usuario && <HeaderPublico />}
 
-      <div className="px-5 pt-6">
+      <div className="px-5 pt-6 md:max-w-6xl md:mx-auto md:px-8 md:pt-10">
         <p className="mb-1 text-xl font-bold text-primary">Galería pública</p>
         <p className="mb-4 text-sm text-muted">
           Plantas que la comunidad de Plantfolio identificó y compartió.
@@ -37,7 +37,7 @@ export default async function GaleriaPage() {
             Todavía nadie compartió una planta públicamente.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {entradas.map((entrada) => (
               <Link
                 key={entrada.id}

@@ -77,7 +77,7 @@ export default function AlbumCliente({
   }
 
   return (
-    <div className="min-h-dvh px-5 pt-12 pb-6">
+    <div className="min-h-dvh px-5 pt-12 pb-6 md:max-w-6xl md:mx-auto md:px-8 md:pt-10">
       <div className="mb-4 flex items-center justify-between gap-2">
         <p className="text-xl font-bold text-primary">Mi Álbum</p>
         <button
@@ -120,7 +120,7 @@ export default function AlbumCliente({
       {filtradas.length === 0 ? (
         <p className="mt-8 text-center text-sm text-muted">Ninguna planta coincide con el filtro.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
           {filtradas.map((entrada) => (
             <div key={entrada.id} className="rounded-2xl border border-accent bg-surface p-2">
               <Link href={`/album/${entrada.id}`}>
