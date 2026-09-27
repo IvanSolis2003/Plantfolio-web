@@ -803,6 +803,40 @@ menor al viewport:** centrarlo con `left-1/2 -translate-x-1/2` +
 rompe el scroll-pinning de cualquier `fixed` que cuelgue de él, no solo del
 que se quiere acotar.
 
+## 🌿 Favicon e imagen de compartir en redes
+
+`app/icon.tsx` (favicon, 32x32) y `app/opengraph-image.tsx` (imagen social,
+1200x630) usan `next/og` (`ImageResponse`, ya incluido en Next.js, sin
+dependencia nueva) para generar las imágenes con código en vez de un editor
+externo — reusan la identidad ya establecida en toda la app (emoji `🌿` +
+verde de marca `#2D6A4F`/`#1B4332`). Next.js detecta estos archivos por
+convención de nombre y arma el `<link rel="icon">`/`<meta property="og:image">`
+solo, sin configuración manual.
+
+**Trampa real:** sin `metadataBase` en el `metadata` de `app/layout.tsx`,
+Next arma la URL absoluta de la imagen social apuntando a `localhost`
+(warning real en el build: "metadataBase property... using
+'http://localhost:3000'"). Se agregó `metadataBase: new URL(baseDeLaApp())`,
+reusando el mismo helper de `lib/cuentas.ts` que ya arma los links de los
+correos de verificación/reseteo — un solo lugar que sabe cuál es el dominio
+real. Verificado en producción: `<meta property="og:image" content="https://plantfolio-web.vercel.app/opengraph-image?...">`.
+
+`public/icon.png` (1024x1024, el ícono de instalación de la PWA que usa
+`app/manifest.ts`) era un placeholder genérico del scaffold de Expo original
+(una flecha azul sin relación con la marca) que nunca se había reemplazado
+— se regeneró con el mismo diseño. Para producir un PNG estático de un
+tamaño específico con `ImageResponse` (que normalmente sirve para rutas
+dinámicas, no para generar un archivo de una vez), la técnica fue: crear un
+Route Handler temporal que devuelve el `ImageResponse` al tamaño deseado,
+pedirle el PNG con `curl` y guardarlo en `public/`, después borrar la ruta
+temporal — no quedó ningún código de esto en el repo, fue un paso único de
+esta sesión. Si hace falta regenerar `public/icon.png` a futuro, repetir
+esa técnica (o copiar `app/opengraph-image.tsx` como base, ajustando tamaño
+y contenido).
+
+`public/favicon.png` (el placeholder viejo, sin referencias en ningún
+archivo) se borró — quedó reemplazado por `app/icon.tsx`.
+
 ## 🖥️ Layout de escritorio (sidebar + grids multi-columna)
 
 La app es mobile-first; hasta acá cualquier vista en pantallas anchas era el
