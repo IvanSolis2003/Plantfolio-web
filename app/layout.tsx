@@ -5,6 +5,7 @@ import QueryProvider from "./QueryProvider";
 import SincronizarSesion from "./SincronizarSesion";
 import EstadoConexion from "@/components/EstadoConexion";
 import BarraInferior from "@/components/BarraInferior";
+import NavEscritorio from "@/components/NavEscritorio";
 import FondoHojas from "@/components/FondoHojas";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import "./globals.css";
@@ -35,10 +36,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="text-text">
         <FondoHojas />
         <QueryProvider>
-          <div className="relative mx-auto max-w-md md:min-h-dvh md:shadow-2xl">
-            <SincronizarSesion usuario={usuario} />
-            <EstadoConexion />
-            <div className={usuario ? "pb-[60px]" : undefined}>{children}</div>
+          <div className="flex min-h-dvh">
+            {usuario && <NavEscritorio />}
+            <div className="min-w-0 flex-1">
+              <SincronizarSesion usuario={usuario} />
+              <EstadoConexion />
+              <div className={usuario ? "pb-[60px] md:pb-0" : undefined}>{children}</div>
+            </div>
           </div>
           {usuario && <BarraInferior />}
         </QueryProvider>

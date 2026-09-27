@@ -11,11 +11,12 @@ const TABS = [
   { href: "/perfil", emoji: "👤", etiqueta: "Perfil" },
 ];
 
-export default function BarraInferior() {
+export default function NavEscritorio() {
   const ruta = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 flex h-[60px] w-full max-w-md -translate-x-1/2 items-center justify-around border-t border-accent bg-surface pb-2 md:hidden">
+    <nav className="hidden md:flex md:w-56 md:shrink-0 md:flex-col md:gap-1 md:border-r md:border-accent md:bg-surface/70 md:px-3 md:py-6">
+      <p className="mb-4 px-3 text-lg font-bold text-primary">🌿 Plantfolio</p>
       {TABS.map((tab) => {
         const activo = tab.href === "/" ? ruta === "/" : ruta.startsWith(tab.href);
 
@@ -23,17 +24,13 @@ export default function BarraInferior() {
           <Link
             key={tab.href}
             href={tab.href}
-            className="flex flex-col items-center gap-0.5"
             aria-current={activo ? "page" : undefined}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold ${
+              activo ? "bg-primary/10 text-primary" : "text-muted"
+            }`}
           >
-            <span className={activo ? "text-[26px] opacity-100" : "text-[22px] opacity-50"}>
-              {tab.emoji}
-            </span>
-            <span
-              className={`text-[11px] font-semibold ${activo ? "text-primary" : "text-muted"}`}
-            >
-              {tab.etiqueta}
-            </span>
+            <span className="text-xl">{tab.emoji}</span>
+            {tab.etiqueta}
           </Link>
         );
       })}
