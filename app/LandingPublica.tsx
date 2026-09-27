@@ -64,7 +64,7 @@ export default async function LandingPublica() {
         {entradas.length === 0 ? (
           <p className="text-sm text-muted">Todavía nadie compartió una planta públicamente.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {entradas.map((entrada) => (
               <Link
                 key={entrada.id}
