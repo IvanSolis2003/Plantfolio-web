@@ -61,20 +61,22 @@ export default async function PerfilPage() {
   const desafios = calcularDesafios(entradasMapeadas);
 
   return (
-    <div className="flex min-h-dvh flex-col px-6">
-      <div className="mt-16 mb-2 flex flex-col items-center">
+    <div className="flex min-h-dvh flex-col px-6 md:grid md:grid-cols-[320px_1fr] md:items-start md:gap-x-10 md:max-w-5xl md:mx-auto md:px-8 md:pt-12">
+      <div className="mt-16 mb-2 flex flex-col items-center md:col-start-1 md:row-start-1 md:mt-0">
         <p className="text-2xl font-bold text-primary">{usuario.name}</p>
         <p className="mb-4 text-sm text-muted">{usuario.email}</p>
       </div>
 
-      <EditarPerfil
-        avatarUrl={usuario.avatarUrl}
-        bio={usuario.bio}
-        ubicacionTexto={usuario.ubicacionTexto}
-        compartirPerfil={usuario.compartirPerfil}
-      />
+      <div className="md:col-start-1 md:row-start-2">
+        <EditarPerfil
+          avatarUrl={usuario.avatarUrl}
+          bio={usuario.bio}
+          ubicacionTexto={usuario.ubicacionTexto}
+          compartirPerfil={usuario.compartirPerfil}
+        />
+      </div>
 
-      <div className="mb-6 flex gap-3">
+      <div className="mb-6 flex gap-3 md:col-start-1 md:row-start-3">
         {estadisticas.map((stat) => (
           <div
             key={stat.label}
@@ -86,66 +88,76 @@ export default async function PerfilPage() {
         ))}
       </div>
 
-      <p className="mb-3 text-sm font-bold text-primary">Logros</p>
-      <div className="mb-6 grid grid-cols-3 gap-2">
-        {logros.map((logro) => (
-          <div
-            key={logro.id}
-            title={logro.descripcion}
-            className={`flex flex-col items-center rounded-xl border p-2 text-center ${
-              logro.desbloqueado
-                ? "border-accent bg-surface"
-                : "border-accent/40 bg-surface/40 opacity-50"
-            }`}
-          >
-            <span className="text-2xl">{logro.emoji}</span>
-            <p className="mt-1 text-[10px] font-semibold text-text">{logro.nombre}</p>
-          </div>
-        ))}
+      <div className="md:col-start-2 md:row-start-1">
+        <p className="mb-3 text-sm font-bold text-primary">Logros</p>
+        <div className="mb-6 grid grid-cols-3 gap-2">
+          {logros.map((logro) => (
+            <div
+              key={logro.id}
+              title={logro.descripcion}
+              className={`flex flex-col items-center rounded-xl border p-2 text-center ${
+                logro.desbloqueado
+                  ? "border-accent bg-surface"
+                  : "border-accent/40 bg-surface/40 opacity-50"
+              }`}
+            >
+              <span className="text-2xl">{logro.emoji}</span>
+              <p className="mt-1 text-[10px] font-semibold text-text">{logro.nombre}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <p className="mb-3 text-sm font-bold text-primary">🍂 Desafíos de {nombreTemporada()}</p>
-      <div className="mb-6 flex flex-col gap-2">
-        {desafios.map((desafio) => (
-          <div
-            key={desafio.id}
-            className={`rounded-xl border p-3 ${
-              desafio.completado ? "border-primary bg-primary/10" : "border-accent bg-surface"
-            }`}
-          >
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-text">
-                {desafio.emoji} {desafio.nombre}
-              </p>
-              <p className="shrink-0 text-xs font-bold text-primary">
-                {desafio.progreso}/{desafio.meta}
-              </p>
+      <div className="md:col-start-2 md:row-start-2">
+        <p className="mb-3 text-sm font-bold text-primary">🍂 Desafíos de {nombreTemporada()}</p>
+        <div className="mb-6 flex flex-col gap-2">
+          {desafios.map((desafio) => (
+            <div
+              key={desafio.id}
+              className={`rounded-xl border p-3 ${
+                desafio.completado ? "border-primary bg-primary/10" : "border-accent bg-surface"
+              }`}
+            >
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-text">
+                  {desafio.emoji} {desafio.nombre}
+                </p>
+                <p className="shrink-0 text-xs font-bold text-primary">
+                  {desafio.progreso}/{desafio.meta}
+                </p>
+              </div>
+              <p className="mb-2 text-xs text-muted">{desafio.descripcion}</p>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-accent/30">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${Math.min(100, (desafio.progreso / desafio.meta) * 100)}%` }}
+                />
+              </div>
             </div>
-            <p className="mb-2 text-xs text-muted">{desafio.descripcion}</p>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-accent/30">
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${Math.min(100, (desafio.progreso / desafio.meta) * 100)}%` }}
-              />
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <ToggleColeccionPrivada valorInicial={coleccionPrivada} />
+      <div className="md:col-start-1 md:row-start-4">
+        <ToggleColeccionPrivada valorInicial={coleccionPrivada} />
+      </div>
 
       {usuario.esAdmin && (
         <Link
           href="/admin"
-          className="mb-4 block rounded-xl border border-accent py-3 text-center font-semibold text-primary"
+          className="mb-4 block rounded-xl border border-accent py-3 text-center font-semibold text-primary md:col-start-1 md:row-start-5"
         >
           Panel de administración
         </Link>
       )}
 
-      <BotonSalir />
+      <div className="mt-auto md:col-start-1 md:row-start-6 md:mt-0">
+        <BotonSalir />
+      </div>
 
-      <CreditoIasmtech />
+      <div className="md:col-span-2 md:row-start-7">
+        <CreditoIasmtech />
+      </div>
     </div>
   );
 }
