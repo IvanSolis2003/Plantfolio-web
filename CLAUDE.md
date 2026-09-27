@@ -461,13 +461,6 @@ Como se recalculan siempre desde cero, un desafío completado en una temporada
 pasada no queda registrado — si se quiere un historial de desafíos
 completados habría que persistirlos, no está hecho.
 
-## 🎓 Posicionamiento "gratis, sin ads" en la landing
-
-`LandingPublica.tsx` tiene 3 badges en el hero ("100% gratis", "Sin ads",
-"Sin letra chica ni suscripciones ocultas") — es la queja #1 del mercado
-según la investigación de Opus (cobros inesperados post-trial, paywalls
-agresivos, dark patterns en cancelación). Solo copy, sin lógica nueva.
-
 ## 📅 Historial/timeline por planta
 
 Las hasta 3 fotos de una entrada (`CollectionEntry.photos`) no tenían fecha
