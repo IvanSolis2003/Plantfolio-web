@@ -8,16 +8,30 @@ import BarraInferior from "@/components/BarraInferior";
 import NavEscritorio from "@/components/NavEscritorio";
 import FondoHojas from "@/components/FondoHojas";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
+import { baseDeLaApp } from "@/lib/cuentas";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(baseDeLaApp()),
   title: "Plantfolio",
-  description: "Tu colección de plantas",
+  description: "Identifica y colecciona la flora chilena con tu cámara.",
   applicationName: "Plantfolio",
   appleWebApp: {
     capable: true,
     title: "Plantfolio",
     statusBarStyle: "default",
+  },
+  openGraph: {
+    title: "Plantfolio",
+    description: "Identifica y colecciona la flora chilena con tu cámara.",
+    siteName: "Plantfolio",
+    locale: "es_CL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Plantfolio",
+    description: "Identifica y colecciona la flora chilena con tu cámara.",
   },
 };
 
