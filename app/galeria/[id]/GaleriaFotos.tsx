@@ -17,7 +17,7 @@ export default function GaleriaFotos({ fotos, alt }: { fotos: string[]; alt: str
               alt={alt}
               width={150}
               height={150}
-              className="h-24 w-full rounded-xl object-cover"
+              className="aspect-square w-full rounded-xl object-cover"
             />
           </button>
         ))}

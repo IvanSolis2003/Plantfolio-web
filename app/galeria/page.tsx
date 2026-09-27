@@ -49,7 +49,7 @@ export default async function GaleriaPage() {
                   alt={entrada.plant.commonName}
                   width={200}
                   height={160}
-                  className="mb-2 h-28 w-full rounded-xl object-cover"
+                  className="mb-2 aspect-square w-full rounded-xl object-cover"
                 />
                 <p className="truncate text-sm font-bold text-primary">{entrada.plant.commonName}</p>
                 <p className="truncate text-xs italic text-muted">{entrada.plant.scientificName}</p>

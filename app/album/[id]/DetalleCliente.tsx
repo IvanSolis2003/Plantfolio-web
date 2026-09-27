@@ -127,7 +127,7 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
                   alt={entrada.plant.commonName}
                   width={150}
                   height={150}
-                  className="h-24 w-full rounded-xl object-cover"
+                  className="aspect-square w-full rounded-xl object-cover"
                 />
               </button>
               <button
@@ -141,7 +141,7 @@ export default function DetalleCliente({ entrada: entradaInicial }: { entrada: C
             </div>
           ))}
           {entrada.photos.length < MAX_FOTOS && (
-            <label className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-accent text-center text-xs text-muted">
+            <label className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-accent text-center text-xs text-muted">
               {subiendoFoto ? "Subiendo..." : "+ Agregar"}
               <input
                 type="file"

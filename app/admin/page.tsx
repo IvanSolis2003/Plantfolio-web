@@ -37,7 +37,7 @@ export default async function AdminPage() {
   });
 
   return (
-    <div className="min-h-dvh px-5 pt-12 pb-6">
+    <div className="min-h-dvh px-5 pt-12 pb-6 md:max-w-2xl md:mx-auto md:px-8 md:pt-10">
       <p className="mb-1 text-xl font-bold text-primary">Cuentas</p>
       <p className="mb-4 text-sm text-muted">
         {usuarios.length} {usuarios.length === 1 ? "cuenta registrada" : "cuentas registradas"}

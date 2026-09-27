@@ -38,7 +38,7 @@ export default async function HomePage() {
     .filter(necesitaRiego);
 
   return (
-    <div className="min-h-dvh px-5 pt-12 pb-6">
+    <div className="min-h-dvh px-5 pt-12 pb-6 md:max-w-2xl md:mx-auto md:px-8 md:pt-10">
       <div className="mb-6">
         <p className="text-base text-muted">Bienvenido,</p>
         <p className="text-2xl font-bold text-primary">{usuario.name} 🌿</p>

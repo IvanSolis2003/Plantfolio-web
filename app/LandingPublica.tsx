@@ -14,7 +14,7 @@ export default async function LandingPublica() {
   });
 
   return (
-    <div className="min-h-dvh pb-10">
+    <div className="min-h-dvh pb-10 md:max-w-3xl md:mx-auto">
       <HeaderPublico />
 
       <div className="px-5 pt-8 text-center">
@@ -76,7 +76,7 @@ export default async function LandingPublica() {
                   alt={entrada.plant.commonName}
                   width={200}
                   height={160}
-                  className="mb-2 h-24 w-full rounded-xl object-cover"
+                  className="mb-2 aspect-square w-full rounded-xl object-cover"
                 />
                 <p className="truncate text-sm font-bold text-primary">{entrada.plant.commonName}</p>
                 <RarityBadge rarity={entrada.plant.rarity} />
