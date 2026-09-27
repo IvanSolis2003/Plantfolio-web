@@ -803,6 +803,64 @@ menor al viewport:** centrarlo con `left-1/2 -translate-x-1/2` +
 rompe el scroll-pinning de cualquier `fixed` que cuelgue de él, no solo del
 que se quiere acotar.
 
+## 🖥️ Layout de escritorio (sidebar + grids multi-columna)
+
+La app es mobile-first; hasta acá cualquier vista en pantallas anchas era el
+mismo diseño mobile centrado en una columna angosta (`max-w-md`). Ahora
+`md:` y en adelante tienen un layout propio de "aplicación de escritorio":
+
+- **`app/layout.tsx`**: ya no hay ningún `max-w-md`/`transform` a nivel de
+  layout (eso era el "marco tipo teléfono" de la iteración anterior, ver
+  sección de arriba). Ahora es `<div className="flex min-h-dvh">` con
+  `NavEscritorio` (sidebar) a la izquierda y `{children}` en un `flex-1` sin
+  límite de ancho — cada pantalla controla su propio `max-w-*` con sus
+  propias clases, como ya hacía antes con `max-w-sm` en los formularios.
+- **`components/NavEscritorio.tsx`**: sidebar (`hidden md:flex`, mismos 5
+  accesos que `BarraInferior`, mismo `usePathname()` para el estado activo).
+  Es un componente **separado** de `BarraInferior`, no un mismo componente
+  que cambia de forma con CSS — mantenerlos separados es intencional: así
+  un cambio en la nav de escritorio nunca puede afectar por accidente la de
+  mobile, ni viceversa.
+- **Sin JS de detección de viewport en ningún lado.** Todo el toggle
+  mobile/desktop es CSS puro (`hidden md:flex`, `md:hidden`, `md:grid-cols-*`,
+  etc.). Un hook tipo `useMediaQuery`/`matchMedia` re-renderiza distinto en
+  servidor vs. cliente (SSR no conoce el ancho real) y puede generar
+  mismatches de hidratación o parpadeos — las clases `md:`/`lg:` de Tailwind
+  se resuelven en el navegador vía CSS, sin ese riesgo, y son el único
+  mecanismo que ya usaba el resto del proyecto.
+
+**Patrón para grids que solo necesitan más columnas** (Álbum, Galería,
+Catálogo): agregar `md:grid-cols-N`/`lg:grid-cols-N` a la grilla que ya
+existía, sin tocar nada más. Por debajo de `md` (768px) esas clases no
+aplican — mobile queda bit a bit igual.
+
+**Patrón para layouts que se reordenan visualmente en 2 columnas** (Perfil,
+detalle de una planta en `album/[id]` y `galeria/[id]`): **CSS Grid con
+posicionamiento explícito** — `md:col-start-N md:row-start-N` en cada bloque
+que ya existía, **nunca reagrupar el JSX en dos `<div>` "columna izquierda"/
+"columna derecha"**. Si se reagruparan en el DOM, mobile (que no usa grid,
+solo flujo normal) mostraría primero todo el contenido de un grupo y
+después todo el del otro — cambiando el orden visual actual, que en esas
+pantallas no es un simple "arriba/abajo" sino que intercala secciones (ej.
+en el detalle de planta, "Cómo creció" va entre las fotos y los datos de
+riego, no al principio ni al final). El único cambio estructural permitido
+es envolver algún elemento suelto en un `<div>` nuevo (para poder darle una
+clase) sin mover su posición en el árbol, y convertir algún fragment (`<>`)
+en `<div>` cuando hace falta adjuntarle una clase de grid a un bloque
+condicional. **Regla de oro: si hay que reordenar algo visualmente en
+escritorio, se hace con grid explícito, nunca reordenando el JSX** —
+después de cada cambio así, conviene grepear el orden de los textos clave
+de la pantalla antes/después del cambio para confirmar que no se movió nada
+(así se verificó en Perfil y en los dos detalles de planta).
+
+**Trampa real encontrada al mover `<BotonSalir />` a un `<div>` nuevo:** el
+botón usaba `mt-auto` para empujarse al fondo del `flex flex-col` de
+Perfil — envolverlo en un `<div>` sin `mt-auto` propio rompe ese
+comportamiento en mobile, porque el `<div>` (no el botón) pasa a ser el
+flex item real. Cualquier elemento con `mt-auto`/`ml-auto`/etc. que se
+envuelva en un `<div>` nuevo necesita que esa clase se mueva (o se copie) al
+wrapper, si no deja de tener efecto.
+
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
 PlantNet y Cloudinary respondieron al toque, pero **OpenWeather tarda un par
@@ -816,7 +874,8 @@ asumir que es un bug de código — puede ser solo cuestión de esperar.
 - App Router de Next.js, páginas protegidas hacen su propio chequeo:
   `const usuario = await obtenerUsuarioServidor(); if (!usuario) redirect("/entrar")`
 - Tailwind con las clases del sistema de diseño ya definido en `tailwind.config.js`, nunca CSS-in-JS ni MUI
-- Barra inferior de 5 tabs (`components/BarraInferior.tsx`) es la navegación — no agregar drawer lateral ni bottom sheet
+- **Mobile:** barra inferior de 5 tabs (`components/BarraInferior.tsx`, `md:hidden`) — no agregar bottom sheet ni cambiarle el patrón
+- **Escritorio (`md:` y mayor):** sidebar izquierdo (`components/NavEscritorio.tsx`, `hidden md:flex`) — ver sección "Layout de escritorio" más abajo
 - Cámara/ubicación son APIs web nativas (`<input capture>`, `navigator.geolocation`), no librerías nuevas
 - Para ampliar una foto a pantalla completa usar `components/VisorFoto.tsx` (recibe `fotos`, `indice`, `alt`, `onCerrar`) en vez de armar un lightbox nuevo — ya lo usan `DetalleCliente.tsx` y `GaleriaFotos.tsx`
 
