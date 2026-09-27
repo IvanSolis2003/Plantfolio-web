@@ -14,7 +14,7 @@ export default async function LandingPublica() {
   });
 
   return (
-    <div className="min-h-dvh pb-10 md:max-w-3xl md:mx-auto">
+    <div className="min-h-dvh pb-10 md:max-w-6xl md:mx-auto">
       <HeaderPublico />
 
       <div className="px-5 pt-8 text-center">
@@ -64,7 +64,7 @@ export default async function LandingPublica() {
         {entradas.length === 0 ? (
           <p className="text-sm text-muted">Todavía nadie compartió una planta públicamente.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {entradas.map((entrada) => (
               <Link
                 key={entrada.id}
