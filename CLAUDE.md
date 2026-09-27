@@ -849,12 +849,21 @@ mismo diseño mobile centrado en una columna angosta (`max-w-md`). Ahora
   `NavEscritorio` (sidebar) a la izquierda y `{children}` en un `flex-1` sin
   límite de ancho — cada pantalla controla su propio `max-w-*` con sus
   propias clases, como ya hacía antes con `max-w-sm` en los formularios.
-- **`components/NavEscritorio.tsx`**: sidebar (`hidden md:flex`, mismos 5
-  accesos que `BarraInferior`, mismo `usePathname()` para el estado activo).
-  Es un componente **separado** de `BarraInferior`, no un mismo componente
-  que cambia de forma con CSS — mantenerlos separados es intencional: así
-  un cambio en la nav de escritorio nunca puede afectar por accidente la de
-  mobile, ni viceversa.
+- **`components/NavEscritorio.tsx`**: sidebar (`hidden md:flex`, mismo
+  `usePathname()` para el estado activo). Es un componente **separado** de
+  `BarraInferior`, no un mismo componente que cambia de forma con CSS —
+  mantenerlos separados es intencional: así un cambio en la nav de
+  escritorio nunca puede afectar por accidente la de mobile, ni viceversa.
+  Recibe `conSesion: boolean` y muestra dos variantes: **logueado** (los
+  mismos 5 accesos de `BarraInferior` — Inicio/Álbum/Escanear/Mapa/Perfil) o
+  **público** (Inicio, Galería pública, Catálogo, más botones de "Crear
+  cuenta"/"Entrar" al fondo) — **nunca** enlaces a pantallas protegidas
+  cuando no hay sesión, porque solo rebotarían a `/entrar`. Se renderiza
+  siempre en `app/layout.tsx` (sin el `{usuario && ...}` que sí sigue
+  teniendo `BarraInferior`, esa es a propósito mobile-only y con sesión —
+  ver más abajo por qué). `components/HeaderPublico.tsx` (el "Plantfolio +
+  Entrar" que ya aparecía arriba de cada pantalla pública) tiene
+  `md:hidden` porque queda duplicado con este sidebar en escritorio.
 - **Sin JS de detección de viewport en ningún lado.** Todo el toggle
   mobile/desktop es CSS puro (`hidden md:flex`, `md:hidden`, `md:grid-cols-*`,
   etc.). Un hook tipo `useMediaQuery`/`matchMedia` re-renderiza distinto en
