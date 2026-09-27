@@ -34,71 +34,81 @@ export default async function DetallePublicoPage({
     <div className="min-h-dvh pb-10">
       {!usuario && <HeaderPublico />}
 
-      <div className="px-5 pt-6">
+      <div className="px-5 pt-6 md:max-w-5xl md:mx-auto md:px-8 md:pt-10">
         <Link href="/galeria" className="mb-4 inline-block text-sm font-semibold text-primary">
           ← Volver a la galería
         </Link>
 
-        <GaleriaFotos fotos={entrada.photos} alt={entrada.plant.commonName} />
+        <div className="md:grid md:grid-cols-[1fr_1.2fr] md:gap-x-8 md:items-start">
+          <div className="md:col-start-1 md:row-start-1">
+            <GaleriaFotos fotos={entrada.photos} alt={entrada.plant.commonName} />
+          </div>
 
-        <p className="text-xl font-bold text-primary">{entrada.plant.commonName}</p>
-        <p className="mb-2 text-sm italic text-muted">{entrada.plant.scientificName}</p>
-        <div className="mb-4 flex items-center gap-2">
-          <RarityBadge rarity={entrada.plant.rarity} />
-          {entrada.plant.nativeToChile && (
-            <span className="text-xs font-semibold text-primary">🇨🇱 Nativa de Chile</span>
-          )}
-        </div>
-
-        <p className="mb-1 text-sm text-text">
-          <span className="font-semibold">Familia:</span> {entrada.plant.family ?? "Desconocida"}
-        </p>
-        {entrada.ubicacionAprox && (
-          <p className="mb-4 text-sm text-text">
-            <span className="font-semibold">📍 Ubicación:</span> {entrada.ubicacionAprox}
-          </p>
-        )}
-
-        {entrada.plant.careInstructions && (
-          <>
-            <p className="mb-1 text-sm font-bold text-primary">Cuidados</p>
-            <p className="mb-3 text-sm text-text">{entrada.plant.careInstructions}</p>
-          </>
-        )}
-
-        {entrada.plant.diseases && (
-          <>
-            <p className="mb-1 text-sm font-bold text-primary">Plagas y enfermedades comunes</p>
-            <p className="mb-4 text-sm text-text">{entrada.plant.diseases}</p>
-          </>
-        )}
-
-        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent bg-surface p-4">
-          {user.compartirPerfil && user.avatarUrl ? (
-            <Image
-              src={user.avatarUrl}
-              alt={user.name}
-              width={56}
-              height={56}
-              className="h-14 w-14 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl">
-              👤
+          <div className="md:col-start-2 md:row-start-1">
+            <p className="text-xl font-bold text-primary">{entrada.plant.commonName}</p>
+            <p className="mb-2 text-sm italic text-muted">{entrada.plant.scientificName}</p>
+            <div className="mb-4 flex items-center gap-2">
+              <RarityBadge rarity={entrada.plant.rarity} />
+              {entrada.plant.nativeToChile && (
+                <span className="text-xs font-semibold text-primary">🇨🇱 Nativa de Chile</span>
+              )}
             </div>
-          )}
-          <div>
-            <p className="font-bold text-primary">{user.name}</p>
-            {user.compartirPerfil && user.ubicacionTexto && (
-              <p className="text-xs text-muted">{user.ubicacionTexto}</p>
-            )}
-            {user.compartirPerfil && user.bio && (
-              <p className="mt-1 text-sm text-text">{user.bio}</p>
+          </div>
+
+          <div className="md:col-start-2 md:row-start-2">
+            <p className="mb-1 text-sm text-text">
+              <span className="font-semibold">Familia:</span> {entrada.plant.family ?? "Desconocida"}
+            </p>
+            {entrada.ubicacionAprox && (
+              <p className="mb-4 text-sm text-text">
+                <span className="font-semibold">📍 Ubicación:</span> {entrada.ubicacionAprox}
+              </p>
             )}
           </div>
-        </div>
 
-        <CreditoIasmtech />
+          {entrada.plant.careInstructions && (
+            <div className="md:col-start-2 md:row-start-3">
+              <p className="mb-1 text-sm font-bold text-primary">Cuidados</p>
+              <p className="mb-3 text-sm text-text">{entrada.plant.careInstructions}</p>
+            </div>
+          )}
+
+          {entrada.plant.diseases && (
+            <div className="md:col-start-2 md:row-start-4">
+              <p className="mb-1 text-sm font-bold text-primary">Plagas y enfermedades comunes</p>
+              <p className="mb-4 text-sm text-text">{entrada.plant.diseases}</p>
+            </div>
+          )}
+
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent bg-surface p-4 md:col-start-2 md:row-start-5 md:mt-0">
+            {user.compartirPerfil && user.avatarUrl ? (
+              <Image
+                src={user.avatarUrl}
+                alt={user.name}
+                width={56}
+                height={56}
+                className="h-14 w-14 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-2xl">
+                👤
+              </div>
+            )}
+            <div>
+              <p className="font-bold text-primary">{user.name}</p>
+              {user.compartirPerfil && user.ubicacionTexto && (
+                <p className="text-xs text-muted">{user.ubicacionTexto}</p>
+              )}
+              {user.compartirPerfil && user.bio && (
+                <p className="mt-1 text-sm text-text">{user.bio}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="md:col-span-2 md:row-start-6">
+            <CreditoIasmtech />
+          </div>
+        </div>
       </div>
     </div>
   );
