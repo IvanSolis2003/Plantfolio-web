@@ -8,9 +8,9 @@ import CreditoIasmtech from "@/components/CreditoIasmtech";
 export default async function LandingPublica() {
   const entradas = await prisma.collectionEntry.findMany({
     where: { privado: false, user: { coleccionPrivada: false } },
-    include: { plant: true },
+    include: { plant: true, user: { select: { name: true } } },
     orderBy: { identifiedAt: "desc" },
-    take: 6,
+    take: 60,
   });
 
   return (
@@ -64,7 +64,7 @@ export default async function LandingPublica() {
         {entradas.length === 0 ? (
           <p className="text-sm text-muted">Todavía nadie compartió una planta públicamente.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {entradas.map((entrada) => (
               <Link
                 key={entrada.id}
@@ -79,7 +79,11 @@ export default async function LandingPublica() {
                   className="mb-2 aspect-square w-full rounded-xl object-cover"
                 />
                 <p className="truncate text-sm font-bold text-primary">{entrada.plant.commonName}</p>
-                <RarityBadge rarity={entrada.plant.rarity} />
+                <p className="truncate text-xs italic text-muted">{entrada.plant.scientificName}</p>
+                <div className="my-1.5">
+                  <RarityBadge rarity={entrada.plant.rarity} />
+                </div>
+                <p className="truncate text-xs text-muted">por {entrada.user.name}</p>
               </Link>
             ))}
           </div>
