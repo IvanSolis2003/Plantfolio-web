@@ -925,6 +925,17 @@ flex item real. Cualquier elemento con `mt-auto`/`ml-auto`/etc. que se
 envuelva en un `<div>` nuevo necesita que esa clase se mueva (o se copie) al
 wrapper, si no deja de tener efecto.
 
+## 🧪 Tests y CI
+
+- `npm test` corre `node --test "tests/*.test.ts"` con el test runner nativo de Node 24 (type-stripping de TypeScript, sin dependencias nuevas).
+- Cubren solo lógica pura: `lib/riego`, `lib/desafios`, `lib/cuentas`, `lib/logros`, `lib/floraNativaChile`. Los helpers están en `tests/fixtures.ts`.
+- Para probar fechas se congela el reloj con `mock.timers.enable({ apis: ["Date"], now })` y se restaura con `mock.timers.reset()` en `afterEach`.
+- Una lib es testeable sin configuración extra si solo usa `import type` de `@/types` (se borra al ejecutar) y no importa alias `@/` en runtime. Si una lib importa `@/lib/prisma` u otro alias, no se puede probar con este runner.
+- `tsconfig.json` excluye `tests` para que `next build` no los tipee.
+- CI en `.github/workflows/ci.yml` (PR y push a `master`): `npm install`, `npx eslint .`, `npm test`, `npm run build` con un `DATABASE_URL` falso (el build no se conecta a la base).
+- Trampa: el CI usa `npm install` y no `npm ci` porque el `package-lock.json` generado en Windows no trae `@emnapi/core` ni `@emnapi/runtime` y `npm ci` falla por lockfile desincronizado. Regenerar el lock en Windows no lo arregla.
+- Al agregar lógica pura nueva (cálculos, reglas), agregar su test en `tests/`.
+
 ## ⚠️ API keys nuevas pueden tardar en activarse
 
 PlantNet y Cloudinary respondieron al toque, pero **OpenWeather tarda un par
