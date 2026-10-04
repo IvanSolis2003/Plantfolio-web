@@ -5,6 +5,7 @@ import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { identificarPlanta } from "@/lib/plantnet";
 import { subirImagen } from "@/lib/cloudinary";
 import { parsearBody, imagenSchema } from "@/lib/validar";
+import { LIMITES, contarYLimitar } from "@/lib/limites";
 
 export const maxDuration = 60;
 
@@ -17,6 +18,9 @@ export async function POST(req: NextRequest) {
   if (!usuario) {
     return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
   }
+
+  const bloqueo = await contarYLimitar(`identificar:${usuario.id}`, LIMITES.identificarPorUsuario);
+  if (bloqueo) return bloqueo;
 
   const validacion = await parsearBody(req, identifySchema);
   if ("error" in validacion) return validacion.error;

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { subirImagen, eliminarImagen } from "@/lib/cloudinary";
 import { parsearBody, imagenSchema } from "@/lib/validar";
+import { LIMITES, contarYLimitar } from "@/lib/limites";
 
 export const maxDuration = 60;
 
@@ -80,6 +81,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       { status: 409 }
     );
   }
+
+  const bloqueo = await contarYLimitar(`foto:${usuario.id}`, LIMITES.subirFotoPorUsuario);
+  if (bloqueo) return bloqueo;
 
   const validacion = await parsearBody(req, agregarFotoSchema);
   if ("error" in validacion) return validacion.error;

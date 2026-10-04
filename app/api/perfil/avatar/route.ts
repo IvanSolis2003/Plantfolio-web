@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioId } from "@/lib/sesion";
 import { subirImagen } from "@/lib/cloudinary";
 import { parsearBody, imagenSchema } from "@/lib/validar";
+import { LIMITES, contarYLimitar } from "@/lib/limites";
 
 export const maxDuration = 60;
 
@@ -16,6 +17,9 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
   }
+
+  const bloqueo = await contarYLimitar(`avatar:${userId}`, LIMITES.avatarPorUsuario);
+  if (bloqueo) return bloqueo;
 
   const validacion = await parsearBody(req, avatarSchema);
   if ("error" in validacion) return validacion.error;
