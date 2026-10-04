@@ -103,3 +103,12 @@ model IdentificationLog {
 
   @@map("identification_logs")
 }
+
+model Intento {
+  id        String   @id @default(cuid())
+  clave     String
+  createdAt DateTime @default(now())
+
+  @@index([clave, createdAt])
+  @@map("intentos")
+}
