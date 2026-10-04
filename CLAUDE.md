@@ -830,6 +830,34 @@ y contenido).
 `public/favicon.png` (el placeholder viejo, sin referencias en ningún
 archivo) se borró — quedó reemplazado por `app/icon.tsx`.
 
+## 🛡️ Rate limiting
+
+Tabla `intentos` (`clave` + `createdAt`, índice compuesto) y `lib/limites.ts`,
+portado del patrón de RutinIA: cada intento se anota con una clave, se cuenta
+cuántos hay dentro de la ventana de tiempo, y `anotarIntento` barre de paso lo
+vencido *de esa misma clave* para que la tabla no crezca sin techo (sin cron).
+Los helpers `limiteSuperado`/`contarYLimitar` devuelven directamente la
+`NextResponse` 429 (con `Retry-After`) o `null`, así que en cada route handler
+alcanza con `const bloqueo = await contarYLimitar(clave, LIMITES.x); if (bloqueo) return bloqueo;`.
+El mensaje de error llega al cliente por el campo `error` del `ApiResponse`, sin
+cambios en los formularios.
+
+| Endpoint | Límite |
+|---|---|
+| `login` | 8 fallos / 15 min por correo, 30 / 15 min por IP — **solo cuentan los fallos**, un login correcto olvida los del correo |
+| `registro` | 5 / hora por IP |
+| `olvide-password`, `reenviar-verificacion` | 4 / hora por correo, 10 / hora por IP |
+| `identify`, `album/:id/fotos` | 30 / hora por usuario |
+| `perfil/avatar` | 10 / hora por usuario |
+
+**Regla para endpoints con mensaje genérico anti-enumeración** (`olvide-password`,
+`reenviar-verificacion`): el contador cuenta **cada pedido, exista o no el correo**,
+para que el 429 aparezca igual en ambos casos y no sirva para distinguir cuentas.
+**La IP** sale de `x-forwarded-for` (primer valor) → `x-real-ip` → `"ip-desconocida"`;
+verificado en producción que Vercel entrega la IP real. Limitación aceptada: el
+chequeo y el registro del intento no son atómicos, dos pedidos simultáneos pueden
+colarse justo en el borde del límite.
+
 ## 🖥️ Layout de escritorio (sidebar + grids multi-columna)
 
 La app es mobile-first; hasta acá cualquier vista en pantallas anchas era el
