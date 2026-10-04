@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { baseDeLaApp, nuevoToken, vencimiento } from "@/lib/cuentas";
 import { enviarCorreo, plantillaVerificacion } from "@/lib/correo";
 import { parsearBody } from "@/lib/validar";
+import { LIMITES, contarYLimitar, ipDelCliente } from "@/lib/limites";
 
 const MENSAJE_OK =
   "Cuenta creada. Revisa tu correo (incluida la carpeta de spam) para confirmarlo.";
@@ -20,6 +21,9 @@ export async function POST(req: NextRequest) {
   if ("error" in validacion) return validacion.error;
 
   const { name, email, password } = validacion.data;
+
+  const bloqueo = await contarYLimitar(`registro:ip:${await ipDelCliente()}`, LIMITES.registroPorIp);
+  if (bloqueo) return bloqueo;
 
   const existente = await prisma.user.findUnique({ where: { email } });
   if (existente) {

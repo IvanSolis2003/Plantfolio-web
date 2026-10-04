@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { baseDeLaApp, nuevoToken, vencimiento } from "@/lib/cuentas";
 import { enviarCorreo, plantillaVerificacion } from "@/lib/correo";
 import { parsearBody } from "@/lib/validar";
+import { LIMITES, contarYLimitar, ipDelCliente } from "@/lib/limites";
 
 const MENSAJE_GENERICO =
   "Si el correo existe y todavía no fue confirmado, te enviamos un nuevo enlace.";
@@ -17,6 +18,11 @@ export async function POST(req: NextRequest) {
   if ("error" in validacion) return validacion.error;
 
   const { email } = validacion.data;
+
+  const bloqueo =
+    (await contarYLimitar(`reenviar:correo:${email}`, LIMITES.recuperarPorCorreo)) ??
+    (await contarYLimitar(`reenviar:ip:${await ipDelCliente()}`, LIMITES.recuperarPorIp));
+  if (bloqueo) return bloqueo;
 
   const usuario = await prisma.user.findUnique({ where: { email } });
 

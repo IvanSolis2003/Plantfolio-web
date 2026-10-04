@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { baseDeLaApp, nuevoToken, vencimiento } from "@/lib/cuentas";
 import { enviarCorreo, plantillaRecuperacion } from "@/lib/correo";
 import { parsearBody } from "@/lib/validar";
+import { LIMITES, contarYLimitar, ipDelCliente } from "@/lib/limites";
 
 const MENSAJE_GENERICO = "Si el correo existe, te enviamos un enlace para restablecer tu contraseña.";
 
@@ -16,6 +17,11 @@ export async function POST(req: NextRequest) {
   if ("error" in validacion) return validacion.error;
 
   const { email } = validacion.data;
+
+  const bloqueo =
+    (await contarYLimitar(`olvide:correo:${email}`, LIMITES.recuperarPorCorreo)) ??
+    (await contarYLimitar(`olvide:ip:${await ipDelCliente()}`, LIMITES.recuperarPorIp));
+  if (bloqueo) return bloqueo;
 
   const usuario = await prisma.user.findUnique({ where: { email } });
 

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { crearSesion } from "@/lib/sesion";
 import { estadoDe, MENSAJE_POR_ESTADO } from "@/lib/cuentas";
 import { parsearBody } from "@/lib/validar";
+import { LIMITES, anotarIntento, ipDelCliente, limiteSuperado, olvidarIntentos } from "@/lib/limites";
 
 const loginSchema = z.object({
   email: z.string({ error: "El correo es requerido" }).trim().toLowerCase().email("Correo inválido"),
@@ -17,15 +18,24 @@ export async function POST(req: NextRequest) {
 
   const { email, password } = validacion.data;
 
+  const porCorreo = `entrar:correo:${email}`;
+  const porIp = `entrar:ip:${await ipDelCliente()}`;
+
+  const bloqueo =
+    (await limiteSuperado(porCorreo, LIMITES.entrarPorCorreo)) ??
+    (await limiteSuperado(porIp, LIMITES.entrarPorIp));
+  if (bloqueo) return bloqueo;
+
   const usuario = await prisma.user.findUnique({ where: { email } });
-  if (!usuario) {
+  const valido = usuario ? await bcrypt.compare(password, usuario.password) : false;
+
+  if (!usuario || !valido) {
+    await anotarIntento(porCorreo, LIMITES.entrarPorCorreo);
+    await anotarIntento(porIp, LIMITES.entrarPorIp);
     return NextResponse.json({ success: false, error: "Credenciales inválidas" }, { status: 401 });
   }
 
-  const valido = await bcrypt.compare(password, usuario.password);
-  if (!valido) {
-    return NextResponse.json({ success: false, error: "Credenciales inválidas" }, { status: 401 });
-  }
+  await olvidarIntentos(porCorreo);
 
   const estado = estadoDe(usuario);
   if (estado !== "lista") {
