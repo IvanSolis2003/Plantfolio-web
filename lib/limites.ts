@@ -13,6 +13,9 @@ export const LIMITES = {
   identificarPorUsuario: { maximo: 30, minutos: 60 },
   subirFotoPorUsuario: { maximo: 30, minutos: 60 },
   avatarPorUsuario: { maximo: 10, minutos: 60 },
+  plantaManualPorUsuario: { maximo: 20, minutos: 60 },
+  climaPorUsuario: { maximo: 120, minutos: 60 },
+  guardarAlbumPorUsuario: { maximo: 60, minutos: 60 },
 } as const satisfies Record<string, Limite>;
 
 export const IP_DESCONOCIDA = "ip-desconocida";

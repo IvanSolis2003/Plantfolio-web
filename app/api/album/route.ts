@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { ubicacionAproximada } from "@/lib/geocoding";
 import { parsearBody, urlFotoSchema, notaSchema } from "@/lib/validar";
+import { LIMITES, contarYLimitar } from "@/lib/limites";
 
 const agregarAlbumSchema = z.object({
   plantId: z.string({ error: "plantId requerido" }).min(1, "plantId requerido"),
@@ -33,6 +34,9 @@ export async function POST(req: NextRequest) {
   if (!usuario) {
     return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
   }
+
+  const bloqueo = await contarYLimitar(`album:${usuario.id}`, LIMITES.guardarAlbumPorUsuario);
+  if (bloqueo) return bloqueo;
 
   const validacion = await parsearBody(req, agregarAlbumSchema);
   if ("error" in validacion) return validacion.error;

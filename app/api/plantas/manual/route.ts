@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { esNativaDeChile } from "@/lib/floraNativaChile";
 import { parsearBody } from "@/lib/validar";
+import { LIMITES, contarYLimitar } from "@/lib/limites";
 
 const manualSchema = z.object({
   nombre: z.string({ error: "Escribí el nombre de la planta" }).trim().min(1, "Escribí el nombre de la planta").max(100, "El nombre no puede superar los 100 caracteres"),
@@ -15,6 +16,9 @@ export async function POST(req: NextRequest) {
   if (!usuario) {
     return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
   }
+
+  const bloqueo = await contarYLimitar(`planta-manual:${usuario.id}`, LIMITES.plantaManualPorUsuario);
+  if (bloqueo) return bloqueo;
 
   const validacion = await parsearBody(req, manualSchema);
   if ("error" in validacion) return validacion.error;

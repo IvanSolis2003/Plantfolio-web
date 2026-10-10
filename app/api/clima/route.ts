@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { obtenerAlertaRiego } from "@/lib/clima";
+import { LIMITES, contarYLimitar } from "@/lib/limites";
 
 export async function GET(req: NextRequest) {
   const usuario = await obtenerUsuarioServidor();
   if (!usuario) {
     return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
   }
+
+  const bloqueo = await contarYLimitar(`clima:${usuario.id}`, LIMITES.climaPorUsuario);
+  if (bloqueo) return bloqueo;
 
   const { searchParams } = new URL(req.url);
   const lat = Number(searchParams.get("lat"));
