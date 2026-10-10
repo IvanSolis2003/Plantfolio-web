@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 export const HORAS_DE_VIGENCIA = 24;
 export const LARGO_TOKEN = 32;
@@ -7,6 +7,10 @@ export type EstadoCuenta = "sin-verificar" | "esperando-aprobacion" | "lista";
 
 export function nuevoToken(): string {
   return randomBytes(LARGO_TOKEN).toString("hex");
+}
+
+export function huellaDeToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }
 
 export function vencimiento(desde: Date = new Date()): Date {

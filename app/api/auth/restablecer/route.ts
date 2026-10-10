@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { tokenVigente } from "@/lib/cuentas";
+import { huellaDeToken, tokenVigente } from "@/lib/cuentas";
 import { parsearBody } from "@/lib/validar";
 
 const restablecerSchema = z.object({
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
   const { token, password } = validacion.data;
 
-  const usuario = await prisma.user.findUnique({ where: { tokenReset: token } });
+  const usuario = await prisma.user.findUnique({ where: { tokenReset: huellaDeToken(token) } });
 
   if (!usuario || !tokenVigente(usuario.tokenResetExpira)) {
     return NextResponse.json(

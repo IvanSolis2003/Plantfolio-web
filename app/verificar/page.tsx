@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { tokenVigente } from "@/lib/cuentas";
+import { huellaDeToken, tokenVigente } from "@/lib/cuentas";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ async function verificar(token: string | undefined): Promise<Desenlace> {
   if (!token || !/^[0-9a-f]{64}$/.test(token)) return "invalido";
 
   const cuenta = await prisma.user.findUnique({
-    where: { tokenVerificacion: token },
+    where: { tokenVerificacion: huellaDeToken(token) },
     select: { id: true, emailVerificado: true, tokenExpira: true },
   });
 

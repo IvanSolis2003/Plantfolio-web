@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { baseDeLaApp, nuevoToken, vencimiento } from "@/lib/cuentas";
+import { baseDeLaApp, huellaDeToken, nuevoToken, vencimiento } from "@/lib/cuentas";
 import { enviarCorreo, plantillaVerificacion } from "@/lib/correo";
 import { parsearBody } from "@/lib/validar";
 import { LIMITES, contarYLimitar, ipDelCliente } from "@/lib/limites";
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   const token = nuevoToken();
   await prisma.user.update({
     where: { id: usuario.id },
-    data: { tokenVerificacion: token, tokenExpira: vencimiento() },
+    data: { tokenVerificacion: huellaDeToken(token), tokenExpira: vencimiento() },
   });
 
   const enlace = `${baseDeLaApp()}/verificar?token=${token}`;

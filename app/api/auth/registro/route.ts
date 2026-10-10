@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { baseDeLaApp, nuevoToken, vencimiento } from "@/lib/cuentas";
+import { baseDeLaApp, huellaDeToken, nuevoToken, vencimiento } from "@/lib/cuentas";
 import { enviarCorreo, plantillaVerificacion } from "@/lib/correo";
 import { parsearBody } from "@/lib/validar";
 import { LIMITES, contarYLimitar, ipDelCliente } from "@/lib/limites";
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       name,
       email,
       password: hashed,
-      tokenVerificacion: token,
+      tokenVerificacion: huellaDeToken(token),
       tokenExpira: vencimiento(),
     },
   });

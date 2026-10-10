@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { estadoDe, nuevoToken, tokenVigente, vencimiento, HORAS_DE_VIGENCIA, LARGO_TOKEN } from "../lib/cuentas.ts";
+import { estadoDe, nuevoToken, tokenVigente, vencimiento, huellaDeToken, HORAS_DE_VIGENCIA, LARGO_TOKEN } from "../lib/cuentas.ts";
 
 test("una cuenta sin correo verificado está sin-verificar aunque esté aprobada", () => {
   assert.equal(estadoDe({ emailVerificado: null, aprobado: true }), "sin-verificar");
@@ -36,4 +36,11 @@ test("un token solo es vigente antes de su expiración", () => {
 
 test("sin fecha de expiración el token no es vigente", () => {
   assert.equal(tokenVigente(null), false);
+});
+
+test("la huella del token es SHA-256 estable y distinta del token", () => {
+  const token = nuevoToken();
+  assert.match(huellaDeToken(token), /^[0-9a-f]{64}$/);
+  assert.equal(huellaDeToken(token), huellaDeToken(token));
+  assert.notEqual(huellaDeToken(token), token);
 });
