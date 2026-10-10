@@ -925,6 +925,18 @@ flex item real. Cualquier elemento con `mt-auto`/`ml-auto`/etc. que se
 envuelva en un `<div>` nuevo necesita que esa clase se mueva (o se copie) al
 wrapper, si no deja de tener efecto.
 
+## 🔒 Seguridad (revisión de octubre 2026)
+
+- **Dependencias:** Next fijo en `16.4.0` (la 16.3.x tenía RCE crítico en `/_next/image` y `next/og`). Correr `npm audit --omit=dev` de vez en cuando. Los avisos de `deepmerge-ts`/`mysql2` vienen de la CLI de Prisma, no corren en producción; arreglarlos obliga a bajar Prisma a 6.
+- **`photoUrl`** (`urlFotoSchema` en `lib/validar.ts`): solo se acepta `https://res.cloudinary.com/<CLOUDINARY_CLOUD_NAME>/`. No guardar URLs externas: salen en la galería pública.
+- **Límites de texto:** notas 1000, bio 300, ubicación 100, nombre de planta manual 100, coordenadas dentro de rango, contraseña de 8 a 72 caracteres (bcrypt solo usa 72 bytes). Todo campo de texto nuevo debe llevar `.max()`.
+- **Cabeceras** (`next.config.ts`): enforced `frame-ancestors 'none'`, `object-src 'none'`, `base-uri`, `form-action`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`. La CSP completa va como `Content-Security-Policy-Report-Only` hasta confirmar en la consola del navegador (Inicio, Escanear, Mapa, Álbum, detalle) que no bloquea nada; luego pasarla a enforced. Cualquier dominio externo nuevo (script, imagen, API del navegador) hay que agregarlo ahí.
+- **Rate limit** también en `plantas/manual` (20/h), `clima` (120/h) y guardar en álbum (60/h), por usuario.
+- **Tokens con hash:** `tokenVerificacion` y `tokenReset` se guardan como SHA-256 (`huellaDeToken`); el correo lleva el token original y el servidor lo hashea para buscarlo. Nunca guardar ni loguear el token original.
+- **Verificar correo por POST:** `/verificar` solo muestra un botón; el token se consume en `POST /api/auth/verificar`. Un GET (prefetch de un cliente de correo) ya no lo gasta.
+- **Login:** siempre se ejecuta `bcrypt.compare` (contra `HASH_SIN_USUARIO` si el correo no existe) para que el tiempo de respuesta no revele qué correos están registrados.
+- **Pendiente:** aviso al admin por cuentas pendientes, retención de `IdentificationLog`, pasar la CSP a enforced.
+
 ## 🧪 Tests y CI
 
 - `npm test` corre `node --test "tests/*.test.ts"` con el test runner nativo de Node 24 (type-stripping de TypeScript, sin dependencias nuevas).
