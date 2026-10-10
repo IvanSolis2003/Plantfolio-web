@@ -7,6 +7,8 @@ import { estadoDe, MENSAJE_POR_ESTADO } from "@/lib/cuentas";
 import { parsearBody } from "@/lib/validar";
 import { LIMITES, anotarIntento, ipDelCliente, limiteSuperado, olvidarIntentos } from "@/lib/limites";
 
+const HASH_SIN_USUARIO = "$2b$10$Pc5h7DsaxKvVzQQP.TQu8uRA2/lp4stBzNYntzeQV6N77xxoO9HLq";
+
 const loginSchema = z.object({
   email: z.string({ error: "El correo es requerido" }).trim().toLowerCase().email("Correo inválido"),
   password: z.string({ error: "La contraseña es requerida" }).min(1, "La contraseña es requerida"),
@@ -27,7 +29,8 @@ export async function POST(req: NextRequest) {
   if (bloqueo) return bloqueo;
 
   const usuario = await prisma.user.findUnique({ where: { email } });
-  const valido = usuario ? await bcrypt.compare(password, usuario.password) : false;
+  const coincide = await bcrypt.compare(password, usuario?.password ?? HASH_SIN_USUARIO);
+  const valido = usuario !== null && coincide;
 
   if (!usuario || !valido) {
     await anotarIntento(porCorreo, LIMITES.entrarPorCorreo);
