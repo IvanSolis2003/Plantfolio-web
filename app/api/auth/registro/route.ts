@@ -13,7 +13,7 @@ const MENSAJE_OK =
 const registroSchema = z.object({
   name: z.string({ error: "El nombre es requerido" }).trim().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string({ error: "El correo es requerido" }).trim().toLowerCase().email("Correo inválido"),
-  password: z.string({ error: "La contraseña es requerida" }).min(6, "La contraseña debe tener al menos 6 caracteres"),
+  password: z.string({ error: "La contraseña es requerida" }).min(8, "La contraseña debe tener al menos 8 caracteres").max(72, "La contraseña no puede superar los 72 caracteres"),
 });
 
 export async function POST(req: NextRequest) {

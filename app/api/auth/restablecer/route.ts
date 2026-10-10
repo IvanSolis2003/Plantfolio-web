@@ -7,7 +7,7 @@ import { parsearBody } from "@/lib/validar";
 
 const restablecerSchema = z.object({
   token: z.string({ error: "Token requerido" }).regex(/^[0-9a-f]{64}$/, "Token inválido"),
-  password: z.string({ error: "La contraseña es requerida" }).min(6, "La contraseña debe tener al menos 6 caracteres"),
+  password: z.string({ error: "La contraseña es requerida" }).min(8, "La contraseña debe tener al menos 8 caracteres").max(72, "La contraseña no puede superar los 72 caracteres"),
 });
 
 export async function POST(req: NextRequest) {

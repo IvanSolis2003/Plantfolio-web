@@ -26,8 +26,8 @@ export default function FormularioRegistro() {
       setError("Las contraseñas no coinciden.");
       return;
     }
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
@@ -104,7 +104,7 @@ export default function FormularioRegistro() {
             <input
               type="password"
               className="w-full rounded-xl border border-accent bg-surface px-4 py-3 text-base text-text"
-              placeholder="Mín. 6 caracteres"
+              placeholder="Mín. 8 caracteres"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
