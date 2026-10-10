@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
-import { parsearBody } from "@/lib/validar";
+import { parsearBody, notaSchema } from "@/lib/validar";
 
 const actualizarEntradaSchema = z.object({
   privado: z.boolean().optional(),
-  notes: z.string().optional(),
+  notes: notaSchema.optional(),
   regada: z.boolean().optional(),
 });
 

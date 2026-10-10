@@ -5,8 +5,8 @@ import { obtenerUsuarioId } from "@/lib/sesion";
 import { parsearBody } from "@/lib/validar";
 
 const perfilSchema = z.object({
-  bio: z.string().optional(),
-  ubicacionTexto: z.string().optional(),
+  bio: z.string().max(300, "La bio no puede superar los 300 caracteres").optional(),
+  ubicacionTexto: z.string().max(100, "La ubicación no puede superar los 100 caracteres").optional(),
   compartirPerfil: z.boolean().optional(),
 });
 

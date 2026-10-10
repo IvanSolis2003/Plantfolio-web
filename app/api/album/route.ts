@@ -3,14 +3,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { obtenerUsuarioServidor } from "@/lib/sesion";
 import { ubicacionAproximada } from "@/lib/geocoding";
-import { parsearBody } from "@/lib/validar";
+import { parsearBody, urlFotoSchema, notaSchema } from "@/lib/validar";
 
 const agregarAlbumSchema = z.object({
   plantId: z.string({ error: "plantId requerido" }).min(1, "plantId requerido"),
-  photoUrl: z.string({ error: "photoUrl requerido" }).min(1, "photoUrl requerido"),
-  notes: z.string().optional(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  photoUrl: urlFotoSchema,
+  notes: notaSchema.optional(),
+  latitude: z.number().min(-90, "Latitud inválida").max(90, "Latitud inválida").optional(),
+  longitude: z.number().min(-180, "Longitud inválida").max(180, "Longitud inválida").optional(),
 });
 
 export async function GET() {

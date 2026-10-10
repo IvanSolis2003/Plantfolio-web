@@ -9,6 +9,17 @@ export const imagenSchema = z
   .min(1, "Imagen requerida")
   .max(MAX_CARACTERES_IMAGEN, "La imagen es demasiado grande");
 
+export const urlFotoSchema = z
+  .string({ error: "photoUrl requerido" })
+  .min(1, "photoUrl requerido")
+  .max(500, "La URL de la foto es demasiado larga")
+  .refine(
+    (url) => url.startsWith(`https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`),
+    "La foto no es válida"
+  );
+
+export const notaSchema = z.string().max(1000, "La nota no puede superar los 1000 caracteres");
+
 export async function parsearBody<T>(
   req: Request,
   schema: ZodSchema<T>

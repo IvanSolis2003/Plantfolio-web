@@ -7,7 +7,7 @@ import { esNativaDeChile } from "@/lib/floraNativaChile";
 import { parsearBody } from "@/lib/validar";
 
 const manualSchema = z.object({
-  nombre: z.string({ error: "Escribí el nombre de la planta" }).trim().min(1, "Escribí el nombre de la planta"),
+  nombre: z.string({ error: "Escribí el nombre de la planta" }).trim().min(1, "Escribí el nombre de la planta").max(100, "El nombre no puede superar los 100 caracteres"),
 });
 
 export async function POST(req: NextRequest) {

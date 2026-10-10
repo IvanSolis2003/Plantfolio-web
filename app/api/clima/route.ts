@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
   const lat = Number(searchParams.get("lat"));
   const lon = Number(searchParams.get("lon"));
 
-  if (Number.isNaN(lat) || Number.isNaN(lon)) {
+  const fueraDeRango = Math.abs(lat) > 90 || Math.abs(lon) > 180;
+  if (Number.isNaN(lat) || Number.isNaN(lon) || fueraDeRango) {
     return NextResponse.json({ success: false, error: "Coordenadas inválidas" }, { status: 400 });
   }
 
